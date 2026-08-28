@@ -87,13 +87,16 @@ namespace mistEditor {
 			transform.Rotate(glm::radians(30.0f) * delta, { 0, 1, 0 });
 		});
 
+		// SDL_GetRelativeMouseState must be called every frame otherwise it breaks camera movement
+		// when refocusing the window havent found a better solution yet
+		glm::vec2 mouse;
+		uint32_t buttons = SDL_GetRelativeMouseState(&mouse.x, &mouse.y);
+
 		if (!focused)
 			return;
 
 		mist::Transform& transform = sm->GetComponent<mist::Transform>(sceneCameraEntity);
-		glm::vec2 mouse;
-		uint32_t buttons = SDL_GetRelativeMouseState(&mouse.x, &mouse.y);
-		mouse *= 1.0;	// Sensitivity
+		mouse *= 0.2;	// Sensitivity
 		xRotation += mouse.y;
 		xRotation = glm::clamp(xRotation, -90.0f, 90.0f);
 		yRotation += mouse.x;
@@ -116,12 +119,14 @@ namespace mistEditor {
 			move.y += 1;
 		if (state[SDL_SCANCODE_LCTRL])
 			move.y -= 1;
+		if (state[SDL_SCANCODE_ESCAPE])
+			ImGui::SetWindowFocus(NULL);
 
 		transform.position += (
 			transform.Forward() * move.z +
 			transform.Up() * move.y +
 			transform.Left() * move.x
-		) * 15.0f * delta;		
+		) * 15.0f * delta;
 	}
 
 	void SceneWindow::OnImguiRender() {
