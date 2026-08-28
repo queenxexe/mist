@@ -1,6 +1,7 @@
 #pragma once
 #include "Core.hpp"
 #include <vector>
+#include <cstdint>
 
 namespace mist {
 	enum class FramebufferTextureFormat {
