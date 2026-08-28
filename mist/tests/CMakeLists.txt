@@ -17,6 +17,10 @@ target_link_libraries(test_mist
 	PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main
 )
 
+target_include_directories(test_mist
+	PRIVATE ../src
+)
+
 include (GoogleTest)
 gtest_discover_tests(test_mist)
 
@@ -24,4 +28,8 @@ add_custom_command(TARGET test_mist POST_BUILD
   	COMMAND ${CMAKE_BINARY_DIR}/test_mist
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 	COMMENT "Running mist tests..."
+)
+
+target_compile_definitions(${PROJECT_NAME} 
+    PRIVATE $<$<CONFIG:Debug>:DEBUG>
 )
