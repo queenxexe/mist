@@ -1,5 +1,4 @@
 #include "components/Camera.hpp"
-#include "Application.hpp"
 #include <Debug.hpp>
 
 namespace mist {
@@ -15,29 +14,26 @@ namespace mist {
 			height == other.height &&
 			aspect == other.aspect &&
 			size == other.size &&
-			orthographicNearPlane == other.orthographicNearPlane &&
-			orthographicFarPlane == other.orthographicFarPlane &&
-			fov == other.fov &&
-			perspectiveNearPlane == other.perspectiveNearPlane &&
-			perspectiveFarPlane == other.perspectiveFarPlane;
+			nearPlane == other.nearPlane &&
+			farPlane == other.farPlane &&
+			fov == other.fov;
 	}
 
 	void Camera::RecreateCamera() {
+		MIST_ASSERT(width != 0, "Camera width is zero");
+		MIST_ASSERT(height != 0, "Camera height is zero");
+		MIST_ASSERT(nearPlane < farPlane, "Far plane is less than the near plane. Got them backwards?");
+
 		if (type == Orthographic) {
 			float left = -size * aspect * 0.5f;
 			float right = size * aspect * 0.5f;
 			float bottom = -size * 0.5f;
 			float top = size * 0.5f;
 			
-			MIST_ASSERT(orthographicNearPlane < orthographicFarPlane, "Far plane is less than the near plane. Got them backwards?");
-			projectionMatrix = glm::orthoLH_ZO(left, right, bottom, top, orthographicNearPlane, orthographicFarPlane);
+			projectionMatrix = glm::orthoLH_ZO(left, right, bottom, top, nearPlane, farPlane);
 		} else {
-			MIST_ASSERT(perspectiveNearPlane < perspectiveFarPlane, "Far plane is less than the near plane. Got them backwards?");
-			projectionMatrix = glm::perspectiveLH_ZO(glm::radians(fov), aspect, perspectiveNearPlane,  perspectiveFarPlane);
+			projectionMatrix = glm::perspectiveLH_ZO(glm::radians(fov), aspect, nearPlane, farPlane);
 		}
-
-		if (Application::Get().GetRenderAPI()->GetAPI() == RenderAPI::Vulkan)
-			projectionMatrix[1][1] *= -1;
 	}
 
 	glm::mat4 Camera::GetProjectionMatrix() const {
@@ -68,17 +64,24 @@ namespace mist {
 		height = _height;
 		aspect = width / height;
 		fov = _fov;
-		perspectiveNearPlane = _nearPlane;
-		perspectiveFarPlane = _farPlane;
+		nearPlane = _nearPlane;
+		farPlane = _farPlane;
 		type = Perspective;
 
 		RecreateCamera();
 	}
 
-	Camera::Camera(const Camera& other) : type(other.type), projectionMatrix(other.projectionMatrix), transformComponent(other.transformComponent), 
-		width(other.width), height(other.height), aspect(other.aspect),
-		size(other.size), orthographicNearPlane(other.orthographicNearPlane), orthographicFarPlane(other.orthographicFarPlane),
-		fov(other.fov), perspectiveNearPlane(other.perspectiveNearPlane), perspectiveFarPlane(other.perspectiveNearPlane) {}
+	Camera::Camera(const Camera& other) : 
+		type(other.type), 
+		projectionMatrix(other.projectionMatrix), 
+		transformComponent(other.transformComponent), 
+		width(other.width), 
+		height(other.height), 
+		aspect(other.aspect),
+		size(other.size), 
+		nearPlane(other.nearPlane), 
+		farPlane(other.farPlane),
+		fov(other.fov) {}
 
 	Camera& Camera::operator=(const Camera& other) {
 		if (this == &other)
@@ -91,11 +94,9 @@ namespace mist {
 		height = other.height;
 		aspect = other.aspect;
 		size = other.size;
-		orthographicNearPlane = other.orthographicNearPlane;
-		orthographicFarPlane = other.orthographicFarPlane;
+		nearPlane = other.nearPlane;
+		farPlane = other.farPlane;
 		fov = other.fov;
-		perspectiveNearPlane = other.perspectiveNearPlane;
-		perspectiveFarPlane = other.perspectiveNearPlane;
 
 		return *this;
 	}
@@ -105,8 +106,8 @@ namespace mist {
 		height = _height;
 		aspect = width / height;
 		size = _size;
-		orthographicNearPlane = _nearPlane;
-		orthographicFarPlane = _farPlane;
+		nearPlane = _nearPlane;
+		farPlane = _farPlane;
 		type = Orthographic;
 
 		RecreateCamera();

@@ -22,5 +22,7 @@ namespace mist {
 		static VkFormat GetVkFormat(const FramebufferTextureFormat& format);
 		static FramebufferTextureFormat GetFramebufferTextureFormat(const VkFormat& format);
 		static VkPresentModeKHR GetPresentMode(RenderAPI::VSYNC mode);
+		static glm::mat4 GetFlippedProjectionMatrix(glm::mat4 projectionMatrix);
+		static glm::mat4 GetFlippedViewProjectionMatrix(const mist::Camera& camera);
 	};
 }

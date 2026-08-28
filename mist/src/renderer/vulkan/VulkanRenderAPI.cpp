@@ -3,6 +3,7 @@
 #include "data/RenderTypes.hpp"
 #include "Debug.hpp"
 #include "Application.hpp"
+#include "renderer/vulkan/VulkanHelper.hpp"
 
 namespace mist {
 	void VulkanRenderAPI::Initialize() {
@@ -51,7 +52,7 @@ namespace mist {
 	
 	void VulkanRenderAPI::UpdateCamera(const uint8_t renderDataID, const Camera& camera) {
 		CameraData camData;
-		camData.u_ViewProjectionMatrix = camera.GetViewProjectionMatrix();
+		camData.u_ViewProjectionMatrix = VulkanHelper::GetFlippedViewProjectionMatrix(camera);
 		
 		VulkanContext& context = VulkanContext::GetContext();
 		Ref<VulkanRenderData> data = context.GetRenderData(renderDataID);

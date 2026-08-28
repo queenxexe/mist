@@ -22,9 +22,13 @@ namespace mist {
 		void SetProjectionType(ProjectionType value) { type = value; RecreateCamera(); };
 
 		void SetViewportSize(float width, float height);
+		void SetNearPlane(float newNearPlane) { nearPlane = newNearPlane; RecreateCamera(); }
+		void SetFarPlane(float newFarPlane) { farPlane = newFarPlane; RecreateCamera(); }
 
 		float GetCameraWidth() const { return width; }
 		float GetCameraHeight() const { return height; }
+		float GetNearPlane() const { return nearPlane; }
+		float GetFarPlane() const { return farPlane; }
 
 		inline void SetTransform(Transform& value) { transformComponent = value; }
 		inline Transform& GetTransform() const { return transformComponent; }
@@ -35,23 +39,11 @@ namespace mist {
 		float GetOrthographicSize() const { return size; }
 		void SetOrthographicSize(float value) { size = value; RecreateCamera(); }
 
-		float GetOrthographicNearPlane() const { return orthographicNearPlane; }
-		void SetOrthographicNearPlane(float value) { orthographicNearPlane = value; RecreateCamera(); }
-
-		float GetOrthographicFarPlane() const { return orthographicFarPlane; }
-		void SetOrthographicFarPlane(float value) { orthographicFarPlane = value; RecreateCamera(); }
-
 		// PERSPECTIVE
 		void SetPerspectiveCamera(const float width, const float height, const float fov = 60, const float nearPlane = 0.01f, const float farPlane = 1000);
 
 		float GetPerspectiveFOV() const { return fov; }
 		void SetPerspectiveFOV(float value) { fov = value; RecreateCamera(); }
-
-		float GetPerspectiveNearPlane() const { return perspectiveNearPlane; }
-		void SetPerspectiveNearPlane(float value) { perspectiveNearPlane = value; RecreateCamera(); }
-
-		float GetPerspectiveFarPlane() const { return perspectiveFarPlane; }
-		void SetPerspectiveFarPlane(float value) { perspectiveFarPlane = value; RecreateCamera(); }
 
 		Camera(const Camera& other);				// Copy construct
 		Camera& operator=(const Camera& other);	    // Copy assign
@@ -59,21 +51,19 @@ namespace mist {
 		bool operator==(const Camera& other) const { return typeid(*this) == typeid(other) && IsEqual(other); }
 	private:
 		// General camera
-		ProjectionType type;
-		glm::mat4 projectionMatrix;
+		ProjectionType type = ProjectionType::Perspective;
+		glm::mat4 projectionMatrix = glm::mat4(0);
 		Transform& transformComponent;
 
-		float width;
-		float height;
-		float aspect;
+		float width = 1;
+		float height = 1;
+		float aspect = 1;
+		float nearPlane = 0.1f;
+		float farPlane = 0.1f;
 		// Orthographic
 		float size = 10;
-		float orthographicNearPlane = -1;
-		float orthographicFarPlane = 1;
 		// Perspective
 		float fov = 60;
-		float perspectiveNearPlane = 0.1f;
-		float perspectiveFarPlane = 1000;
 	};
 
 	class SceneCamera : public Camera {

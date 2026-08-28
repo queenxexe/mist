@@ -314,4 +314,15 @@ namespace mist {
 		case RenderAPI::VSYNC::TripleBuffer:	return VK_PRESENT_MODE_MAILBOX_KHR;
 		}
 	}
+
+	glm::mat4 VulkanHelper::GetFlippedProjectionMatrix(const glm::mat4 projectionMatrix) {
+		glm::mat4 flipped = projectionMatrix;
+		flipped[1][1] *= -1;
+		return flipped;
+	}
+
+	glm::mat4 VulkanHelper::GetFlippedViewProjectionMatrix(const mist::Camera& camera) {
+		glm::mat4 flipped = GetFlippedProjectionMatrix(camera.GetProjectionMatrix());
+		return flipped * camera.GetViewMatrix();
+	}
 }
