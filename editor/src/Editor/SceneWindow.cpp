@@ -87,6 +87,9 @@ namespace mistEditor {
 			transform.Rotate(glm::radians(30.0f) * delta, { 0, 1, 0 });
 		});
 
+		if (!focused)
+			return;
+
 		mist::Transform& transform = sm->GetComponent<mist::Transform>(sceneCameraEntity);
 		glm::vec2 mouse;
 		uint32_t buttons = SDL_GetRelativeMouseState(&mouse.x, &mouse.y);
@@ -123,7 +126,7 @@ namespace mistEditor {
 
 	void SceneWindow::OnImguiRender() {
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
-		ImGui::Begin("Scene");
+		ImGui::Begin("Scene", nullptr, ImGuiWindowFlags_NoFocusOnAppearing);
 		ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 		if (sceneViewportSize != *((glm::vec2*)&viewportSize)) {
 			resizeRequested = true;
@@ -136,6 +139,7 @@ namespace mistEditor {
 		};
 		parent->ImGuiImage(sceneFramebufferID, imageSize, ImVec2{0, 0}, ImVec2{1, 1});
 
+		focused = ImGui::IsWindowFocused(ImGuiWindowFlags_NoFocusOnAppearing);
 		ImGui::End();
 		ImGui::PopStyleVar();
 	}

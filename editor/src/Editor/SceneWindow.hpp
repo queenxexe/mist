@@ -20,6 +20,7 @@ namespace mistEditor {
 		void PostRender();
 		void Cleanup();
 	private:
+		bool focused = false;
 		mist::ImguiLayer* parent;
 		mist::Ref<mist::RenderData> renderData;
 		entt::entity sceneCameraEntity;
