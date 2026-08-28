@@ -4,8 +4,6 @@
 #include "renderer/Framebuffer.hpp"
 
 namespace mist {
-	using ImGuiTextureID = uint32_t;
-
 	class ImguiLayer : public Layer {
 	public:
 		ImguiLayer(const char* name = "Imgui Layer");
@@ -17,17 +15,13 @@ namespace mist {
 
 		void Begin();
 		void End();
-		ImGuiTextureID AddTexture(const Ref<RenderData>& renderData);
-		void UpdateTexture(const ImGuiTextureID& id, const Ref<RenderData>& renderData);
-		void RemoveTexture(const ImGuiTextureID& id);
-		void ImGuiImage(const ImGuiTextureID& id, const ImVec2& imageSize, const ImVec2& uv0, const ImVec2& uv1);
+		ImTextureID AddTexture(const Ref<RenderData>& renderData);
+		void UpdateTexture(ImTextureID& id, const Ref<RenderData>& renderData);
+		void RemoveTexture(const ImTextureID& id);
+		void ImGuiImage(const ImTextureRef& texture, const ImVec2& imageSize, const ImVec2& uv0, const ImVec2& uv1);
 	protected:
 		void SetDarkThemeColors();
 
 		Ref<RenderData> renderData;
-
-		// Must fwd declare otherwise would leak vulkan to exe
-		class ImguiLayerData;
-		ImguiLayerData* layerData;
 	};
 }

@@ -11,15 +11,10 @@
 #include "renderer/vulkan/VulkanRenderData.hpp"
 #include <Debug.hpp>
 
-namespace mist {
-	class ImguiLayer::ImguiLayerData {
-	public:
-		uint32_t activeTextureIDCounter = 0;
-		VkSampler vulkanSampler = VK_NULL_HANDLE;
-		std::unordered_map<ImGuiTextureID, VkDescriptorSet> activeVulkanTextures;
-	};
+#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 
-	ImguiLayer::ImguiLayer(const char* name) : Layer(name), layerData(new ImguiLayerData()) {}
+namespace mist {
+	ImguiLayer::ImguiLayer(const char* name) : Layer(name) {}
 
 	ImguiLayer::~ImguiLayer() {}
 
@@ -83,18 +78,6 @@ namespace mist {
 			info.CheckVkResultFn = CheckVkResult;
 			ImGui_ImplVulkan_Init(&info);
 			ImGui_ImplVulkan_CreateMainPipeline(&info.PipelineInfoMain);
-
-			VkSamplerCreateInfo samplerInfo{};
-			samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-			samplerInfo.magFilter = VK_FILTER_LINEAR;
-			samplerInfo.minFilter = VK_FILTER_LINEAR;
-			samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-			samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-			samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-			samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-		
-			MIST_ASSERT(layerData != nullptr, "Layerdata not init");
-			CheckVkResult(vkCreateSampler(context.GetDevice(), &samplerInfo, context.GetAllocationCallbacks(), &layerData->vulkanSampler));
 		} else {
 			MIST_ERROR("Not implemented imgui backends for this render API");
 		}
@@ -102,10 +85,6 @@ namespace mist {
 
 	void ImguiLayer::OnDetach() {
 		if (Application::Get().GetRenderAPI()->GetAPI() == RenderAPI::Vulkan) {
-			VulkanContext& context = VulkanContext::GetContext();
-			if (layerData->vulkanSampler != VK_NULL_HANDLE)
-				vkDestroySampler(context.GetDevice(), layerData->vulkanSampler, context.GetAllocationCallbacks());
-
 			ImGui_ImplVulkan_Shutdown();
 		}
 
@@ -151,35 +130,35 @@ namespace mist {
 		}
 	}
 
-	ImGuiTextureID ImguiLayer::AddTexture(const Ref<RenderData>& renderData) {
-		ImGuiTextureID id = 0;
-
+	ImTextureID ImguiLayer::AddTexture(const Ref<RenderData>& renderData) {
 		if (Application::Get().GetRenderAPI()->GetAPI() == RenderAPI::Vulkan) {
 			Ref<VulkanRenderData> data = std::dynamic_pointer_cast<VulkanRenderData>(renderData);
-			layerData->activeVulkanTextures.emplace(layerData->activeTextureIDCounter++, ImGui_ImplVulkan_AddTexture(layerData->vulkanSampler, data->GetFirstFramebufferImageView(), data->GetFirstFramebufferImageLayout()));
+			VkDescriptorSet descriptorSet = ImGui_ImplVulkan_AddTexture(data->GetFirstFramebufferImageView(), data->GetFirstFramebufferImageLayout());
+			return reinterpret_cast<ImTextureID>(descriptorSet);
 		}
 
-		return id;
+		return ImTextureID_Invalid;
 	}
 
-	void ImguiLayer::UpdateTexture(const ImGuiTextureID& id, const Ref<RenderData>& renderData) {
+	void ImguiLayer::UpdateTexture(ImTextureID& id, const Ref<RenderData>& renderData) {
 		if (Application::Get().GetRenderAPI()->GetAPI() == RenderAPI::Vulkan) {
 			Ref<VulkanRenderData> data = std::dynamic_pointer_cast<VulkanRenderData>(renderData);
-			ImGui_ImplVulkan_RemoveTexture(layerData->activeVulkanTextures[id]);
-			layerData->activeVulkanTextures[id] = ImGui_ImplVulkan_AddTexture(layerData->vulkanSampler, data->GetFirstFramebufferImageView(), data->GetFirstFramebufferImageLayout());
+			VkDescriptorSet oldDescriptorSet = (VkDescriptorSet)(uintptr_t)id;
+			ImGui_ImplVulkan_RemoveTexture(oldDescriptorSet);
+			VkDescriptorSet newDescriptorSet = ImGui_ImplVulkan_AddTexture(data->GetFirstFramebufferImageView(), data->GetFirstFramebufferImageLayout());
+			id = (ImTextureID)(uintptr_t)newDescriptorSet;
 		}
 	}
 
-	void ImguiLayer::RemoveTexture(const ImGuiTextureID& id) {
+	void ImguiLayer::RemoveTexture(const ImTextureID& id) {
 		if (Application::Get().GetRenderAPI()->GetAPI() == RenderAPI::Vulkan) {
-			ImGui_ImplVulkan_RemoveTexture(layerData->activeVulkanTextures[id]);
-			layerData->activeVulkanTextures.erase(id);
+			ImGui_ImplVulkan_RemoveTexture((VkDescriptorSet)(uintptr_t)id);
 		}
 	}
 
-	void ImguiLayer::ImGuiImage(const ImGuiTextureID& id, const ImVec2& imageSize, const ImVec2& uv0, const ImVec2& uv1) {
+	void ImguiLayer::ImGuiImage(const ImTextureRef& texture, const ImVec2& imageSize, const ImVec2& uv0, const ImVec2& uv1) {
 		if (Application::Get().GetRenderAPI()->GetAPI() == RenderAPI::Vulkan) {
-			ImGui::Image(layerData->activeVulkanTextures[id], imageSize, uv0, uv1);
+			ImGui::Image(texture, imageSize, uv0, uv1);
 		}
 	}
 
@@ -205,9 +184,9 @@ namespace mist {
 		// Tabs
 		colors[ImGuiCol_Tab] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
 		colors[ImGuiCol_TabHovered] = ImVec4{ 0.38f, 0.3805f, 0.381f, 1.0f };
-		colors[ImGuiCol_TabActive] = ImVec4{ 0.28f, 0.2805f, 0.281f, 1.0f };
-		colors[ImGuiCol_TabUnfocused] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-		colors[ImGuiCol_TabUnfocusedActive] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
+		colors[ImGuiCol_TabSelected] = ImVec4{ 0.28f, 0.2805f, 0.281f, 1.0f };
+		colors[ImGuiCol_TabDimmed] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+		colors[ImGuiCol_TabDimmedSelected] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
 
 		// Title BG
 		colors[ImGuiCol_TitleBg] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };

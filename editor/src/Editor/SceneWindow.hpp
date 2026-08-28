@@ -28,7 +28,7 @@ namespace mistEditor {
 		float yRotation = 0;
 
 		bool resizeRequested = false;
-		mist::ImGuiTextureID sceneFramebufferID;
+		ImTextureID sceneFramebufferID;
 		glm::vec2 sceneViewportSize = { 0, 0 };
 
 		mist::Ref<mist::Shader> testShader;
