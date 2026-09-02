@@ -55,6 +55,12 @@ find_package(imgui CONFIG REQUIRED)
 
 add_library(mist STATIC ${SOURCES})
 
+set_target_properties(mist PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/mist/bin"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/mist/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/mist/lib"
+) 
+
 target_include_directories(mist
 	PRIVATE "src/"
 	PUBLIC "include/"
@@ -79,7 +85,7 @@ target_link_libraries(mist
     PUBLIC imgui::imgui
 )
 
-target_compile_definitions(${PROJECT_NAME} 
+target_compile_definitions(mist
     PRIVATE $<$<CONFIG:Debug>:DEBUG>
     PRIVATE $<$<PLATFORM_ID:Windows>:MIST_DLL>
 )

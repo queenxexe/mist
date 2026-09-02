@@ -30,6 +30,6 @@ add_custom_command(TARGET test_mist POST_BUILD
 	COMMENT "Running mist tests..."
 )
 
-target_compile_definitions(${PROJECT_NAME} 
+target_compile_definitions(test_mist
     PRIVATE $<$<CONFIG:Debug>:DEBUG>
 )
