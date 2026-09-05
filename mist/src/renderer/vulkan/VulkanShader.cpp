@@ -5,7 +5,7 @@
 #include "renderer/vulkan/VulkanContext.hpp"
 #include "Debug.hpp"
 #include "VulkanDebug.hpp"
-#include "PlatformUtils.hpp"
+#include "Utils.hpp"
 
 namespace mist {
 	static TBuiltInResource GetDefaultResources() {

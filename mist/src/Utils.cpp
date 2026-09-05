@@ -1,5 +1,6 @@
-#include "PlatformUtils.hpp"
+#include "Utils.hpp"
 #include <fstream>
+#include <filesystem>
 #include "Debug.hpp"
 
 namespace mist {
@@ -18,5 +19,9 @@ namespace mist {
 		}
 
 		return result;
+	}
+
+	bool Utils::Exists(const std::string& path) {
+		return std::filesystem::exists(path);
 	}
 }

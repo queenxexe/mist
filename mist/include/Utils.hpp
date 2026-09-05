@@ -6,6 +6,7 @@ namespace mist {
 	class Utils {
 	public:
 		static std::string ReadFile(const std::string& path);
+		static bool Exists(const std::string& path);
 	};
 
 	class FileDialog {
