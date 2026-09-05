@@ -4,7 +4,7 @@
 namespace V {
 	class VLayer : public mist::ImguiLayer {
 	public:
-		VLayer(const char* name = "V");
+		VLayer(const mist::ImguiLayerConfig& config);
 		virtual ~VLayer() override;
 
 		VLayer(const VLayer& other) = delete;

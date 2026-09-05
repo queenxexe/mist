@@ -4,9 +4,15 @@
 #include "renderer/Framebuffer.hpp"
 
 namespace mist {
+	struct ImguiLayerConfig {
+		const char* name;		// Layer name 
+		const char* fontPath;	// Initial imgui font on creation if left empty will use imgui default
+		ImGuiConfigFlags flags;	// Flags to setup Imgui IO with
+	};
+
 	class ImguiLayer : public Layer {
 	public:
-		ImguiLayer(const char* name = "Imgui Layer");
+		ImguiLayer(const ImguiLayerConfig& config);
 		~ImguiLayer();
 
 		virtual void OnAttach() override;
@@ -22,6 +28,7 @@ namespace mist {
 	protected:
 		void SetDarkThemeColors();
 
+		ImguiLayerConfig config;
 		Ref<RenderData> renderData;
 	};
 }

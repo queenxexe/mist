@@ -12,10 +12,19 @@
 // Now its getting even more spec with winmains
 
 void Run() {
-    mist::Application editor = mist::Application("Editor");
-    mistEditor::EditorLayer* editorLayer = new mistEditor::EditorLayer();
-    editor.PushLayer(editorLayer);
-    editor.Run();
+	mist::Application editor = mist::Application("Editor");
+	
+	mist::ImguiLayerConfig config;
+	config.name = "Editor";
+	config.fontPath = "assets/fonts/Roboto/Roboto-Bold.ttf";
+	config.flags = 
+		ImGuiConfigFlags_NavEnableKeyboard |
+		ImGuiConfigFlags_DockingEnable |
+		ImGuiConfigFlags_ViewportsEnable;
+	mistEditor::EditorLayer* editorLayer = new mistEditor::EditorLayer(config);
+
+	editor.PushLayer(editorLayer);
+	editor.Run();
 }
 
 //#if defined(_WIN32)
@@ -30,7 +39,7 @@ void Run() {
 //}
 //#else
 int main(int argc, char* argv[]) {
-    Run();
-    return 0;
+	Run();
+	return 0;
 }
 //#endif

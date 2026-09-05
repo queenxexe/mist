@@ -3,7 +3,7 @@
 #include <imgui.h>
 
 namespace V {
-	VLayer::VLayer(const char* name) : ImguiLayer("V") {}
+	VLayer::VLayer(const mist::ImguiLayerConfig& config) : ImguiLayer(config), game(this) {}
 
 	VLayer::~VLayer() {}
 

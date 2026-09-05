@@ -5,7 +5,7 @@
 namespace mistEditor {
 	class EditorLayer : public mist::ImguiLayer {
 	public:
-		EditorLayer(const char* name = "Imgui Layer");
+		EditorLayer(const mist::ImguiLayerConfig& config);
 		virtual ~EditorLayer() override;
 	
 		EditorLayer(const EditorLayer& other) = delete;

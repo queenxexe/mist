@@ -10,11 +10,12 @@
 #include "renderer/vulkan/VulkanDebug.hpp"
 #include "renderer/vulkan/VulkanRenderData.hpp"
 #include <Debug.hpp>
+#include <Utils.hpp>
 
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 
 namespace mist {
-	ImguiLayer::ImguiLayer(const char* name) : Layer(name) {}
+	ImguiLayer::ImguiLayer(const ImguiLayerConfig& config) : Layer(config.name), config(config) {}
 
 	ImguiLayer::~ImguiLayer() {}
 
@@ -22,12 +23,12 @@ namespace mist {
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO();
-		io.ConfigFlags = 
-			ImGuiConfigFlags_NavEnableKeyboard |
-			ImGuiConfigFlags_DockingEnable |
-			ImGuiConfigFlags_ViewportsEnable;
-		io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto/Roboto-Bold.ttf", 16);
-		io.FontDefault = io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto/Roboto-Regular.ttf", 16);
+		io.ConfigFlags = config.flags;
+
+		if (std::strcmp(config.fontPath, "") && mist::Utils::Exists(config.fontPath)) {
+			ImFont* font = io.Fonts->AddFontFromFileTTF(config.fontPath, 16);
+			io.FontDefault = font;
+		}
 
 		ImGui::StyleColorsDark();
 		ImGuiStyle& style = ImGui::GetStyle();

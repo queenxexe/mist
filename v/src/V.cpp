@@ -4,8 +4,17 @@
 #endif
 
 #include <Application.hpp>
+#include "VLayer.hpp"
 
 int main(int arc, char* argv[]) {
-	mist::Application editor = mist::Application("V");
-	
+	mist::Application v = mist::Application("V");
+
+	mist::ImguiLayerConfig config;
+    config.name = "V";
+    config.fontPath = "";
+    config.flags = ImGuiConfigFlags_NavEnableKeyboard;
+	V::VLayer* gameLayer = new V::VLayer(config);
+
+    v.PushLayer(gameLayer);
+	v.Run();
 }

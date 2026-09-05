@@ -3,7 +3,7 @@
 #include <imgui.h>
 
 namespace mistEditor {
-	EditorLayer::EditorLayer(const char* name) : ImguiLayer("Editor"), sceneWindow(this) {}
+	EditorLayer::EditorLayer(const mist::ImguiLayerConfig& config) : ImguiLayer(config), sceneWindow(this) {}
 
 	EditorLayer::~EditorLayer() {}
 
