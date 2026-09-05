@@ -65,8 +65,8 @@ namespace mistEditor {
 
 		const entt::entity gameCameraEntity = sm->CreateEntity();
 		mist::Transform& gameCameraT = sm->AddComponent<mist::Transform>(gameCameraEntity, glm::vec3(0, 0, -5));
-		mist::Camera& gameCamera = sm->AddComponent<mist::Camera>(gameCameraEntity, sceneCameraT);
-		sceneCamera.SetPerspectiveCamera(1280, 720);
+		mist::Camera& gameCamera = sm->AddComponent<mist::Camera>(gameCameraEntity, gameCameraT);
+		gameCamera.SetPerspectiveCamera(1280, 720);
 
 		const entt::entity directionalLightEntity = sm->CreateEntity();
 		mist::Transform& directionalLightT = sm->AddComponent<mist::Transform>(directionalLightEntity, glm::vec3(0, 0, -5), glm::quat(glm::radians(glm::vec3(-45, 180, 0))));
