@@ -626,3 +626,73 @@ TEST(MistTest, vulkanProjectionFlip) {
 		ExpectMatrixNear(expected, result);
 	}
 }
+
+TEST(MistTest, MathAny) {
+	{
+		glm::ivec3 a(1,1,1);
+		glm::ivec3 b(1,1,1);
+		EXPECT_TRUE(mist::Math::AnyEqual(a, b));
+		EXPECT_TRUE(mist::Math::AnyEqual(b, a));
+		b.x += 1;
+		EXPECT_TRUE(mist::Math::AnyEqual(a, b));
+		b.y += 1;
+		b.z += 1;
+		EXPECT_FALSE(mist::Math::AnyEqual(a, b));
+	}
+
+	{
+		glm::ivec3 a(1,0,1);
+		EXPECT_TRUE(mist::Math::AnyLess(a, 1));
+		EXPECT_FALSE(mist::Math::AnyLess(a, 0));
+	}
+
+	{
+		glm::ivec3 a(1,0,1);
+		EXPECT_TRUE(mist::Math::AnyLess(a, 1));
+		EXPECT_FALSE(mist::Math::AnyLess(a, 0));
+	}
+
+	{
+		glm::ivec3 a(5,4,5);
+		EXPECT_TRUE(mist::Math::AnyGreaterOrEqual(a, 4));
+		EXPECT_FALSE(mist::Math::AnyGreaterOrEqual(a, 7));
+	}
+}
+
+TEST(MistTest, MathAll) {
+	{
+		glm::ivec3 a(1,1,1);
+		glm::ivec3 b(1,1,1);
+		EXPECT_TRUE(mist::Math::AllEqual(a, b));
+		EXPECT_TRUE(mist::Math::AllEqual(b, a));
+		
+		b.x += 1;
+		EXPECT_FALSE(mist::Math::AllEqual(a, b));
+	}
+
+	{
+		glm::ivec3 a(2,2,2);
+		glm::ivec3 b(1,1,1);
+		EXPECT_TRUE(mist::Math::AllGreaterOrEqual(a, b));
+		EXPECT_FALSE(mist::Math::AllGreaterOrEqual(b, a));
+		
+		b.x += 2;
+		EXPECT_FALSE(mist::Math::AllGreaterOrEqual(a, b));
+	}
+
+	{
+		glm::ivec3 a(1,1,1);
+		glm::ivec3 b(2,2,2);
+		EXPECT_TRUE(mist::Math::AllLessOrEqual(a, b));
+		EXPECT_FALSE(mist::Math::AllLessOrEqual(b, a));
+		
+		b.x -= 2;
+		EXPECT_FALSE(mist::Math::AllGreaterOrEqual(a, b));
+	}
+}
+
+TEST(MistTest, MathDistance) {
+	glm::ivec3 a(2,2,2);
+	glm::ivec3 b(5,5,5);
+	EXPECT_EQ(mist::Math::DistanceSq(a, b), 27);
+}

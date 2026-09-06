@@ -17,3 +17,18 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
+
+namespace mist {
+	class Math {
+	public:
+		static bool AllEqual(const glm::ivec3 a, const glm::ivec3 b);
+		static bool AllGreaterOrEqual(const glm::ivec3 a, const glm::ivec3 b);
+		static bool AllLessOrEqual(const glm::ivec3 a, const glm::ivec3 b);
+
+		static bool AnyEqual(const glm::ivec3 a, const glm::ivec3 b);
+		static bool AnyLess(const glm::ivec3 vec, const uint32_t value);
+		static bool AnyGreaterOrEqual(const glm::ivec3 vec, const uint32_t value);
+
+		static uint32_t DistanceSq(const glm::ivec3 a, const glm::ivec3 b);
+	};
+}
