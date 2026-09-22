@@ -2,7 +2,6 @@
 #include <vulkan/vulkan.h>
 #include <unordered_map>
 #include "renderer/vulkan/VulkanShader.hpp"
-#include "renderer/vulkan/VulkanDescriptors.hpp"
 
 namespace mist {
 	class VulkanPipeline {
@@ -11,7 +10,7 @@ namespace mist {
 		~VulkanPipeline() {}
 
 		void Cleanup();
-		void CreateGraphicsPipeline(const VulkanShader* shaderResources, const VkRenderPass& renderPass, const uint32_t colorAttachmentCount, VulkanDescriptor& descriptors);
+		void CreateGraphicsPipeline(const VulkanShader& shaderResources, const VkRenderPass& renderPass, const uint32_t colorAttachmentCount);
 
 		bool HasPipeline(const std::string name) { return pipelines.contains(name); }		
 		VkPipeline& GetGraphicsPipeline(const std::string name) { return pipelines[name]; }

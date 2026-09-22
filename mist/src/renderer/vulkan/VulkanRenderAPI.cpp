@@ -4,6 +4,7 @@
 #include "Debug.hpp"
 #include "Application.hpp"
 #include "renderer/vulkan/VulkanHelper.hpp"
+#include "renderer/vulkan/VulkanMaterial.hpp"
 
 namespace mist {
 	void VulkanRenderAPI::Initialize() {
@@ -16,10 +17,6 @@ namespace mist {
 		context.Cleanup();
 	}
 
-	void VulkanRenderAPI::SetClearColor(glm::vec4& color) {
-		clearColor = color;
-	}
-	
 	void VulkanRenderAPI::BeginFrame() {
 		VulkanContext& context = VulkanContext::GetContext();
 		context.BeginFrame();
@@ -40,23 +37,27 @@ namespace mist {
 		context.EndRenderPass();
 	}
 
+	// Im aware this isnt great in the long run and all shaders should share one but this will do for now
 	void VulkanRenderAPI::UpdateDirectionalLight(const uint8_t renderDataID, const DirectionalLight& light) {
 		DirectionalLightData lightData;
 		lightData.u_LightDir = light.GetTransform().Forward();
 		lightData.u_LightColor = light.lightColor;
 
-		VulkanContext& context = VulkanContext::GetContext();
-		Ref<VulkanRenderData> data = context.GetRenderData(renderDataID);
-		data->descriptors.UpdateUniformBuffer({ context.GetCurrentFrameIndex(), "DirectionalLightData" }, lightData);
+		auto& materials = Application::Get().GetMaterialLibrary()->GetAllMaterials();
+		for (const auto&[name, material] : materials) {
+			material->SetUniformData(renderDataID, "DirectionalLightData", sizeof(lightData), &lightData);
+		}
 	}
 	
+	// Im aware this isnt great in the long run and all shaders should share one but this will do for now
 	void VulkanRenderAPI::UpdateCamera(const uint8_t renderDataID, const Camera& camera) {
 		CameraData camData;
 		camData.u_ViewProjectionMatrix = VulkanHelper::GetFlippedViewProjectionMatrix(camera);
 		
-		VulkanContext& context = VulkanContext::GetContext();
-		Ref<VulkanRenderData> data = context.GetRenderData(renderDataID);
-		data->descriptors.UpdateUniformBuffer({ context.GetCurrentFrameIndex(), "CameraData" }, camData);
+		auto& materials = Application::Get().GetMaterialLibrary()->GetAllMaterials();
+		for (const auto&[name, material] : materials) {
+			material->SetUniformData(renderDataID, "CameraData", sizeof(camData), &camData);
+		}
 	}
 
 	void VulkanRenderAPI::BindMeshRenderer(const uint8_t renderDataID, const MeshRenderer& meshRenderer) {
@@ -65,15 +66,16 @@ namespace mist {
 
 		meshRenderer.vBuffer->Bind();
 		meshRenderer.iBuffer->Bind();
-		vkCmdBindDescriptorSets(context.GetCurrentFrameCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, data->pipeline.GetGraphicsPipelineLayout(meshRenderer.shaderName), 0, 1, &data->descriptors.GetDescriptorSet(meshRenderer), 0, nullptr);
-		
-		glm::mat4 matrix = meshRenderer.GetTransform().GetLocalToWorldMatrix();
-		Application::Get().GetShaderLibrary()->Get(meshRenderer.shaderName)->SetUniformData(renderDataID, "ModelMatrix", sizeof(matrix), &matrix);
 	}
 
 	void VulkanRenderAPI::Draw(uint32_t indexCount) {
 		VulkanContext& context = VulkanContext::GetContext();
 		vkCmdDrawIndexed(context.GetCurrentFrameCommandBuffer(), indexCount, 1, 0, 0, 0);
+	}
+
+	void VulkanRenderAPI::DrawFullscreen() {
+		VulkanContext& context = VulkanContext::GetContext();
+		vkCmdDraw(context.GetCurrentFrameCommandBuffer(), 3, 1, 0, 0);
 	}
 	
 	void VulkanRenderAPI::WaitForIdle() {

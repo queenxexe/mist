@@ -4,6 +4,8 @@
 #include <assimp/scene.h>
 #include "Debug.hpp"
 #include <glm/gtx/string_cast.hpp>
+#include <stb_image.h>
+#include "Utils.hpp"
 
 namespace mist {
 	glm::vec3 AssimpVec3ToGLM(const aiVector3D& v) {
@@ -85,5 +87,20 @@ namespace mist {
 		std::vector<Ref<Mesh>> meshes;
 		ProcessNode(scene->mRootNode, scene, glm::mat4(1.0f), meshes);
 		return meshes;
+	}
+
+	ImageData Importer::ImportImage(const std::string& path) {
+		ImageData data;
+		std::string absPath = Utils::GetAbsolutePath(path);
+
+		if (!Utils::Exists(absPath)) {
+			MIST_WARN("File doesnt exist: " + absPath);
+			return data;
+		}
+
+		data.pixels = stbi_loadf(absPath.c_str(), &data.width, &data.height, &data.channels, STBI_rgb_alpha);		
+		if (!data.pixels)
+			MIST_WARN("Failed to load image: " + absPath + " Reason: " + stbi_failure_reason());
+		return data;
 	}
 }

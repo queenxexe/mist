@@ -138,7 +138,7 @@ namespace mist {
 		}
 	}
 
-	VulkanShader::VulkanShader(const std::string& path) {
+	VulkanShader::VulkanShader(const std::string& path) : Shader() {
 		shaderName = std::filesystem::path(path).stem().string();
 		std::string src = Utils::ReadFile(path);
 		std::unordered_map<EShLanguage, std::string> shaderSources = PreProcess(src);
@@ -148,12 +148,10 @@ namespace mist {
 			std::vector<uint32_t> spirv = ConvertGLSLToSPIRV(src.second, src.first);
 			Compile(spirv, src.first);
 		}
+		CreateDescriptorSetLayouts();
 		glslang::FinalizeProcess();
 
-		//VulkanContext& context = VulkanContext::GetContext();
-		//context.pipeline.CreateGraphicsPipeline(this);
-
-		MIST_INFO(std::string("Loaded shader and created graphics pipeline for: ") + shaderName);
+		MIST_INFO("Loaded shader and created graphics pipeline for: {}", shaderName);
 	}
 
 	VulkanShader::VulkanShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc) : shaderName(name) {
@@ -166,30 +164,24 @@ namespace mist {
 			std::vector<uint32_t> spirv = ConvertGLSLToSPIRV(src.second, src.first);
 			Compile(spirv, src.first);
 		}
+		CreateDescriptorSetLayouts();
 		glslang::FinalizeProcess();
 
-		//VulkanContext& context = VulkanContext::GetContext();
-		//context.pipeline.CreateGraphicsPipeline(this);
-
-		MIST_INFO(std::string("Loaded shader and created graphics pipeline for: ") + name);
+		MIST_INFO("Loaded shader and created graphics pipeline for: {}", name);
 	}
 
 	VulkanShader::~VulkanShader() {
-		Clear();
+		Cleanup();
 	}
 
-	void VulkanShader::Clear() {
+	void VulkanShader::Cleanup() {
 		VulkanContext& context = VulkanContext::GetContext();
-		for (std::pair<std::string, InputShaderResource> pair : shaderInputs) {
-			vkDestroyShaderModule(context.GetDevice(), pair.second.shaderModule, context.GetAllocationCallbacks());
+		for (VkDescriptorSetLayout& layout : descriptorSetLayouts) {
+			vkDestroyDescriptorSetLayout(context.GetDevice(), layout, context.GetAllocationCallbacks());
 		}
 
-		for (std::pair<std::string, UBOShaderResource> pair : shaderUbos) {
-			vkDestroyShaderModule(context.GetDevice(), pair.second.shaderModule, context.GetAllocationCallbacks());
-		}
-		
-		for (std::pair<std::string, SampledImageShaderResources> pair : shaderSampledImages) {
-			vkDestroyShaderModule(context.GetDevice(), pair.second.shaderModule, context.GetAllocationCallbacks());
+		for (const auto& stage : shaderStages) {
+			vkDestroyShaderModule(context.GetDevice(), stage.module, context.GetAllocationCallbacks());
 		}
 	}
 
@@ -276,6 +268,7 @@ namespace mist {
 			break;
 		case spirv_cross::SPIRType::Half:
 			size = sizeof(uint16_t);
+			break;
 		case spirv_cross::SPIRType::Float:
 			size = sizeof(float);
 			break;
@@ -348,6 +341,12 @@ namespace mist {
 	void VulkanShader::Compile(const std::vector<uint32_t>& spirv, EShLanguage stage) {
 		spirv_cross::CompilerGLSL compiler(spirv);
 		spirv_cross::ShaderResources resources = compiler.get_shader_resources();
+		
+		VulkanShaderStage shaderStage{};
+		shaderStage.language = stage;
+		shaderStage.stage = EShLanguageToVkStageFlags(stage);
+		shaderStage.module = CreateShaderModule(spirv);
+		shaderStages.push_back(shaderStage);
 
 		uint32_t inputStride = 0;
 		for (const spirv_cross::Resource& res : resources.stage_inputs) {
@@ -361,7 +360,6 @@ namespace mist {
 			res.format = GetDescriptionFormat(compiler, compiler.get_type(inputs.type_id));
 			res.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 			res.flags = EShLanguageToVkStageFlags(stage);
-			res.shaderModule = CreateShaderModule(spirv);
 			
 			uint32_t offset = 0;
 			for (const spirv_cross::Resource& i : resources.stage_inputs) {
@@ -380,9 +378,9 @@ namespace mist {
 			res.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			res.binding = compiler.get_decoration(ubo.id, spv::DecorationBinding);
 			res.offset = compiler.get_decoration(ubo.id, spv::DecorationOffset);
+			res.set = compiler.get_decoration(ubo.id, spv::DecorationDescriptorSet);
 			res.count = 1;
 			res.flags = EShLanguageToVkStageFlags(stage);
-			res.shaderModule = CreateShaderModule(spirv);
 
 			uint32_t size = 0;
 			const spirv_cross::SPIRType& type = compiler.get_type(ubo.base_type_id);
@@ -395,6 +393,7 @@ namespace mist {
 			res.size = size;
 			
 			shaderUbos[ubo.name] = res;
+			CreateDescriptorSetLayoutBinding(res.set, res.binding, res.type, res.count, res.flags);
 		}
 
 		for (const spirv_cross::Resource& pushConstant : resources.push_constant_buffers) {
@@ -414,14 +413,78 @@ namespace mist {
 		}
 		
 		for (const spirv_cross::Resource& sampled : resources.sampled_images) {
-			SampledImageShaderResources res;
-			res.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+			ShaderDescriptorResource res;
+			res.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			res.set = compiler.get_decoration(sampled.id, spv::DecorationDescriptorSet);
 			res.binding = compiler.get_decoration(sampled.id, spv::DecorationBinding);
 			res.count = 1;
 			res.flags = EShLanguageToVkStageFlags(stage);
-			res.shaderModule = CreateShaderModule(spirv);
 		
-			shaderSampledImages[sampled.name] = res;
+			shaderDescriptors[sampled.name] = res;
+			CreateDescriptorSetLayoutBinding(res.set, res.binding, res.type, res.count, res.flags);
+		}
+
+		for (const spirv_cross::Resource& images : resources.separate_images) {
+			ShaderDescriptorResource res;
+			res.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+			res.set = compiler.get_decoration(images.id, spv::DecorationDescriptorSet);
+			res.binding = compiler.get_decoration(images.id, spv::DecorationBinding);
+			res.count = 1;
+			res.flags = EShLanguageToVkStageFlags(stage);
+		
+			shaderDescriptors[images.name] = res;
+			CreateDescriptorSetLayoutBinding(res.set, res.binding, res.type, res.count, res.flags);
+		}
+
+		for (const spirv_cross::Resource& samplers : resources.separate_samplers) {
+			ShaderDescriptorResource res;
+			res.type = VK_DESCRIPTOR_TYPE_SAMPLER;
+			res.set = compiler.get_decoration(samplers.id, spv::DecorationDescriptorSet);
+			res.binding = compiler.get_decoration(samplers.id, spv::DecorationBinding);
+			res.count = 1;
+			res.flags = EShLanguageToVkStageFlags(stage);
+		
+			shaderDescriptors[samplers.name] = res;
+			CreateDescriptorSetLayoutBinding(res.set, res.binding, res.type, res.count, res.flags);
+		} 
+	}
+
+	void VulkanShader::CreateDescriptorSetLayoutBinding(uint32_t set, uint32_t binding, VkDescriptorType type, uint32_t count, VkShaderStageFlags stageFlags) {
+		if (descriptorSetLayoutBindings.size() <= set)
+			descriptorSetLayoutBindings.resize(set + 1);
+
+		auto& bindings = descriptorSetLayoutBindings[set];
+		auto it = std::find_if(bindings.begin(), bindings.end(), [binding](const VkDescriptorSetLayoutBinding& existing) {
+			return existing.binding == binding;
+		});
+
+		if (it != bindings.end()) {
+			MIST_ASSERT(it->descriptorType == type, "Descriptor type mismatch between shader stages");
+			it->stageFlags |= stageFlags;
+			return;
+		}
+
+		VkDescriptorSetLayoutBinding layoutBinding{};
+		layoutBinding.binding = binding;
+		layoutBinding.descriptorType = type;
+		layoutBinding.descriptorCount = count;
+		layoutBinding.stageFlags = stageFlags;
+		layoutBinding.pImmutableSamplers = nullptr;
+		bindings.push_back(layoutBinding);
+	}
+
+	void VulkanShader::CreateDescriptorSetLayouts() {
+		VulkanContext& context = VulkanContext::GetContext();
+		descriptorSetLayouts.resize(descriptorSetLayoutBindings.size());
+
+		for (uint32_t set = 0; set < descriptorSetLayoutBindings.size(); ++set) {
+			const auto& bindings = descriptorSetLayoutBindings[set];
+
+			VkDescriptorSetLayoutCreateInfo info{};
+			info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+			info.bindingCount = static_cast<uint32_t>(bindings.size());
+			info.pBindings = bindings.data();
+			CheckVkResult(vkCreateDescriptorSetLayout(context.GetDevice(), &info, context.GetAllocationCallbacks(), &descriptorSetLayouts[set]));
 		}
 	}
 
@@ -429,7 +492,7 @@ namespace mist {
 		VulkanContext& context = VulkanContext::GetContext();
 		Ref<VulkanRenderData> data = context.GetRenderData(renderDataId);
 		if (!data->pipeline.HasPipeline(shaderName))
-			data->CreateGraphicsPipeline(this);
+			data->pipeline.CreateGraphicsPipeline(*this, data->renderPass, data->colorAttachmentCount);
 
 		vkCmdBindPipeline(
 			context.GetCurrentFrameCommandBuffer(),
@@ -440,16 +503,18 @@ namespace mist {
 
 	void VulkanShader::Unbind(const uint8_t renderDataId) const {}
 
-	void VulkanShader::SetUniformData(const uint8_t renderDataId, const std::string& name, const int size, const void* data) {
+	void VulkanShader::SetPushConstant(const uint8_t renderDataId, const std::string& name, const int size, const void* value) {
 		VulkanContext& context = VulkanContext::GetContext();
-		PushConstantResource& res = shaderPushConstants[name];
 		Ref<VulkanRenderData> renderData = context.GetRenderData(renderDataId);
 		
 #if DEBUG
 		MIST_ASSERT(shaderPushConstants.contains(name), std::string("Invalid push constants name passed: " + name));
+#endif
 
+		PushConstantResource& res = shaderPushConstants[name];
+#if DEBUG
 		if (res.size != size)
-			MIST_WARN(std::string("Expected size of: %d, you passed %d", res.size, size));
+			MIST_WARN("[" + name + "] Expected size of: " + std::to_string(res.size) + ", you passed " + std::to_string(size));
 #endif
 
 		vkCmdPushConstants(
@@ -458,7 +523,7 @@ namespace mist {
 			res.flags,
 			res.offset,
 			res.size,
-			data
+			value
 		);
 	}
 }

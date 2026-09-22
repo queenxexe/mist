@@ -304,8 +304,17 @@ namespace mist {
 	}
 
 	void VulkanContext::Cleanup() {
+		for (auto& [id, material] : Application::Get().GetMaterialLibrary()->GetAllMaterials()) {
+			material->Cleanup();
+		}
+
+		for (auto& [name, shader] : Application::Get().GetShaderLibrary()->GetAllShaders()) {
+			shader->Cleanup();
+		}
+
 		for (std::pair<const uint8_t, Ref<VulkanRenderData>>& data : renderDatas)
 			data.second->Cleanup();
+
 		for (VkImageView& swapchainImageView : swapchainImageViews)
 			vkDestroyImageView(device, swapchainImageView, allocationCallbacks);
 

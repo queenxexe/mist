@@ -4,6 +4,7 @@
 #include <renderer/Framebuffer.hpp>
 #include <renderer/Buffer.hpp>
 #include <renderer/Shader.hpp>
+#include <renderer/Material.hpp>
 #include <components/Camera.hpp>
 #include <imgui/ImguiLayer.hpp>
 #include <entt/entt.hpp>
@@ -23,5 +24,8 @@ namespace V {
 		mist::ImguiLayer* parent;
 		mist::Ref<mist::RenderData> renderData;
 		entt::entity cameraEntity;
+		mist::Ref<mist::Image> skyboxImage;
+		mist::Ref<mist::Shader> skyboxShader;
+		mist::Ref<mist::Material> skyboxMat;
 	};
 }

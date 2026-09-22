@@ -24,4 +24,8 @@ namespace mist {
 	bool Utils::Exists(const std::string& path) {
 		return std::filesystem::exists(path);
 	}
+
+	std::string Utils::GetAbsolutePath(const std::string& path) {
+		return std::filesystem::absolute(path);
+	}
 }

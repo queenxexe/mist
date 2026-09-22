@@ -13,8 +13,8 @@ namespace mistEditor {
 
 	void SceneWindow::Initialize() {
 		std::vector<mist::FramebufferTextureProperties> attachments = {
-			mist::FramebufferTextureFormat::RGBA8,
-			mist::FramebufferTextureFormat::DEPTH32_STENCIL8
+			mist::TextureFormat::RGBA8,
+			mist::TextureFormat::DEPTH32_STENCIL8
 		};
 		mist::FramebufferProperties properties;
 		properties.type = mist::FramebufferType::SINGLE;
@@ -32,15 +32,16 @@ namespace mistEditor {
 		mist::Camera& sceneCamera = sm->AddComponent<mist::SceneCamera>(sceneCameraEntity, sceneCameraT);
 		sceneCamera.SetPerspectiveCamera(1280, 720);
 
-		// GAME
 		testShader = mist::Application::Get().GetShaderLibrary()->Load("assets/shaders/lambert.glsl");
+		material = mist::Application::Get().GetMaterialLibrary()->Create(testShader);
 
 		//testMeshes = mist::Importer::ImportMeshes("assets/brassfang.fbx");
 		testMeshes = mist::Importer::ImportMeshes("assets/LightCycle.obj", true);
 		{
 			const entt::entity triEntity = sm->CreateEntity();
 			mist::Transform& testT = sm->AddComponent<mist::Transform>(triEntity, glm::vec3(-2, 0, 0), glm::quat_identity<float, glm::defaultp>(), glm::vec3(1.0f));
-			sm->AddComponent<mist::MeshRenderer>(triEntity, testT, testShader->GetName(), testMeshes[0]);
+			sm->AddComponent<mist::MeshRenderer>(triEntity, testT, testMeshes[0]);
+			sm->AddComponent<mist::MaterialRef>(triEntity, material->GetID());
 		}
 
 		std::vector<mist::Vertex> verts = {
@@ -60,7 +61,8 @@ namespace mistEditor {
 		{
 			const entt::entity triEntity = sm->CreateEntity();
 			mist::Transform& testT = sm->AddComponent<mist::Transform>(triEntity, glm::vec3(2, 0, 0));
-			sm->AddComponent<mist::MeshRenderer>(triEntity, testT, testShader->GetName(), testMesh);
+			sm->AddComponent<mist::MeshRenderer>(triEntity, testT, testMesh);
+			sm->AddComponent<mist::MaterialRef>(triEntity, material->GetID());
 		}
 
 		const entt::entity gameCameraEntity = sm->CreateEntity();
@@ -73,9 +75,7 @@ namespace mistEditor {
 		mist::DirectionalLight& directionalLight = sm->AddComponent<mist::DirectionalLight>(directionalLightEntity, directionalLightT, glm::vec3(1,1,1));
 	}
 
-	void SceneWindow::Cleanup() {
-		testShader->Clear();
-	}
+	void SceneWindow::Cleanup() {}
 
 	void SceneWindow::OnEditorUpdate() {
 		mist::RenderAPI* renderAPI = mist::Application::Get().GetRenderAPI();

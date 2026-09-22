@@ -1,5 +1,7 @@
 #pragma once
 #include <entt/entt.hpp>
+#include "renderer/Shader.hpp"
+#include "renderer/Material.hpp"
 #include "components/Camera.hpp"
 
 namespace mist {
@@ -28,6 +30,9 @@ namespace mist {
 
 		inline void SubmitActiveScene(const uint8_t renderDataID) { SubmitScene(renderDataID, activeScene); }
 		void SubmitScene(const uint8_t renderDataID, const int32_t sceneIndex);
+
+		inline void SubmitActiveSceneSkybox(const uint8_t renderDataID, const Ref<Material>& skyboxMaterial) { SubmitSkybox(renderDataID, activeScene, skyboxMaterial); }
+		void SubmitSkybox(const uint8_t renderDataID, const int32_t sceneIndex, const Ref<Material>& skyboxMaterial);
 
 		void UpdateSceneCamera(const Camera& camera, const uint8_t renderDataID);
 		void UpdateSceneCamera(const uint8_t renderDataID);

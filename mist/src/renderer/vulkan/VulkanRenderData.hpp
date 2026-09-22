@@ -1,8 +1,10 @@
 #pragma once
 #include <vulkan/vulkan.h>
+#include <vk_mem_alloc.h>
 #include "renderer/Framebuffer.hpp"
 #include "renderer/vulkan/VulkanPipeline.hpp"
-#include "renderer/vulkan/VulkanDescriptors.hpp"
+#include "renderer/vulkan/VulkanDescriptorAllocator.hpp"
+#include "renderer/vulkan/VulkanImguiContext.hpp"
 
 // TODO: Add additional FramebufferType of PING PONG which would allow for creation of two sets of framebuffers that will be switched between
 
@@ -25,13 +27,13 @@ namespace mist {
 
 		void CreateRenderData(FramebufferProperties& properties);
 		void Cleanup();
-		
-		inline void CreateGraphicsPipeline(const VulkanShader* shader) { pipeline.CreateGraphicsPipeline(shader, renderPass, colorAttachmentCount, descriptors); }
+
 		inline VkImageView GetFirstFramebufferImageView() { return framebufferAttachments[0][0].view; }
 		VkImageLayout GetFirstFramebufferImageLayout();
 		
 		VulkanPipeline pipeline;
-		VulkanDescriptor descriptors;
+		VulkanDescriptorAllocator vda;
+		VulkanImguiContext imguiContext;
 		
 		VkRenderPass renderPass = VK_NULL_HANDLE;
 		VkViewport viewport;
@@ -44,7 +46,7 @@ namespace mist {
 		void CreateFramebuffers(const FramebufferProperties& properties);
 		void ClearAndResizeFramebufferAttachments(const uint32_t count);
 		void ClearAndResizeFramebuffers(const uint32_t count);
-		void CreateAttachmentImage(const FramebufferProperties& properties, const FramebufferTextureFormat& attachmentFormat, const size_t imageIndex, const size_t attachmentIndex);
+		void CreateAttachmentImage(const FramebufferProperties& properties, const TextureFormat& attachmentFormat, const size_t imageIndex, const size_t attachmentIndex);
 		void SetViewportAndScissor(const uint32_t width, const uint32_t height);
 	};
 }

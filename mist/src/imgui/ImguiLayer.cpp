@@ -39,7 +39,7 @@ namespace mist {
 		SetDarkThemeColors();
 
 		std::vector<mist::FramebufferTextureProperties> attachments = {
-			mist::FramebufferTextureFormat::RGBA8
+			mist::TextureFormat::RGBA8
 		};
 		mist::FramebufferProperties properties;
 		properties.type = FramebufferType::SWAPCHAIN;
@@ -69,7 +69,7 @@ namespace mist {
 			info.QueueFamily = indicies.graphicsFamily.value();
 			info.Queue = context.GetGraphicsQueue();
 			info.PipelineCache = VK_NULL_HANDLE;
-			info.DescriptorPool = data->descriptors.GetImGuiDescriptorPool();
+			info.DescriptorPool = data->imguiContext.GetPool();
 			info.MinImageCount = capabilities.minImageCount;
 			info.ImageCount = swapchainImageCount;
 			info.Allocator = context.GetAllocationCallbacks();

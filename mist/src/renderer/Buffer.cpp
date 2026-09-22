@@ -4,19 +4,6 @@
 #include "renderer/vulkan/VulkanBuffer.hpp"
 
 namespace mist {
-	Ref<VertexBuffer> VertexBuffer::Create(uint32_t size) {
-		switch (Application::Get().GetRenderAPI()->GetAPI()) {
-		case RenderAPI::API::None:
-			MIST_ASSERT(false, "None render API not supported");
-			return nullptr;
-		case RenderAPI::API::Vulkan:
-			return CreateRef<VulkanVertexBuffer>(size);
-		default:
-			MIST_ASSERT(false, "Unknown render API");
-			return nullptr;
-		}
-	}
-
 	Ref<VertexBuffer> VertexBuffer::Create(const std::vector<Vertex>& vertices) {
 		switch (Application::Get().GetRenderAPI()->GetAPI()) {
 		case RenderAPI::API::None:

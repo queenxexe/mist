@@ -4,60 +4,73 @@
 #include "renderer/Buffer.hpp"
 
 namespace mist {
+	class VulkanBuffer {
+	public:
+		VulkanBuffer();
+		~VulkanBuffer();
+
+		VulkanBuffer(const VulkanBuffer&) = delete;
+		VulkanBuffer& operator=(const VulkanBuffer&) = delete;
+
+		VulkanBuffer(VulkanBuffer&& other) noexcept;
+		VulkanBuffer& operator=(VulkanBuffer&& other) noexcept;
+
+		void Create(VkDeviceSize size, VkBufferUsageFlags usage, VmaMemoryUsage allocUsage, VmaAllocationCreateFlags allocFlags, VmaAllocationInfo& info);
+		void Copy(VkBuffer src, VkBuffer dst, VkDeviceSize size);
+		void SetData(VkDeviceSize size, const void* data, VkBufferUsageFlags usage);
+		void Clear();
+		void Reset();
+
+		VkBuffer buffer = VK_NULL_HANDLE;
+		VmaAllocation alloc = VK_NULL_HANDLE;
+		VkDeviceSize size = 0;
+	};
+
 	class VulkanVertexBuffer : public VertexBuffer {
 	public:
-		VulkanVertexBuffer(uint32_t count);
 		VulkanVertexBuffer(const std::vector<Vertex>& vertices);
-		~VulkanVertexBuffer();
 
-		VulkanVertexBuffer(VulkanVertexBuffer&& other) noexcept;
-		VulkanVertexBuffer& operator=(VulkanVertexBuffer&& other) noexcept;
-
-		virtual void Clear() override;
+		virtual void Clear() override { buffer.Clear(); }
 		virtual void Bind() const override;
 		virtual void SetData(const std::vector<Vertex>& vertices) override;
 
-		const VkBuffer& GetBuffer() const { return vertexBuffer; }
+		inline const VkBuffer& GetBuffer() const { return buffer.buffer; }
+		inline const VkDeviceSize GetSize() const { return buffer.size; }
 	private:
-		VkBuffer vertexBuffer;
-		VmaAllocation vertexAlloc;
+		VulkanBuffer buffer;
 	};
 
 	class VulkanIndexBuffer : public IndexBuffer {
 	public:
 		VulkanIndexBuffer(const std::vector<uint32_t>& indices);
-		~VulkanIndexBuffer();
 
-		VulkanIndexBuffer(VulkanIndexBuffer&& other) noexcept;
-		VulkanIndexBuffer& operator=(VulkanIndexBuffer&& other) noexcept;
-
-		virtual void Clear() override;
+		virtual void Clear() override { buffer.Clear(); }
 		virtual void Bind() const override;
 		virtual void SetData(const std::vector<uint32_t>& indices) override;
 
-		const VkBuffer& GetBuffer() const { return indexBuffer; }
+		inline const VkBuffer& GetBuffer() const { return buffer.buffer; }
+		inline const VkDeviceSize GetSize() const { return buffer.size; }
 	private:
-		VkBuffer indexBuffer;
-		VmaAllocation indexAlloc;
+		VulkanBuffer buffer;
 	};
 
 	class UniformBuffer {
 	public:
 		UniformBuffer();
-		UniformBuffer(uint32_t size, void* data);
+		UniformBuffer(const uint32_t size, const void* data);
 		~UniformBuffer();
 
 		UniformBuffer(UniformBuffer&& other) noexcept;
 		UniformBuffer& operator=(UniformBuffer&& other) noexcept;
 
-		void SetData(uint32_t size, void* data);
+		// Returns true if buffer is created/recreated
+		bool SetData(const uint32_t size, const void* data);
 		void Clear();
 
-		const VkBuffer& GetBuffer() const { return uboBuffer; }
-		const VkDeviceSize GetSize() const { return size; }
+		inline const VkBuffer& GetBuffer() const { return buffer.buffer; }
+		inline const VkDeviceSize GetSize() const { return buffer.size; }
 	private:
-		VkBuffer uboBuffer;
-		VmaAllocation uboAlloc;
-		VkDeviceSize size;
+		VulkanBuffer buffer;
+		void* mappedData = nullptr;
 	};
 }

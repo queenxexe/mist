@@ -9,12 +9,12 @@ namespace mist {
 	public:
 		virtual ~Shader() {}
 
-		virtual void Clear() = 0;
+		virtual void Cleanup() = 0;
 
 		virtual void Bind(const uint8_t renderDataId) const = 0;
 		virtual void Unbind(const uint8_t renderDataId) const = 0;
 
-		virtual void SetUniformData(const uint8_t renderDataId, const std::string& name, const int size, const void* value) = 0;
+		virtual void SetPushConstant(const uint8_t renderDataId, const std::string& name, const int size, const void* value) = 0;
 
 		virtual const std::string& GetName() const = 0;
 
@@ -31,7 +31,7 @@ namespace mist {
 		Ref<Shader> Load(const std::string& name, const std::string& path);
 
 		Ref<Shader> Get(const std::string& name);
-		const std::unordered_map<std::string, Ref<Shader>> GetAllShaders() const { return shaders; }
+		const std::unordered_map<std::string, Ref<Shader>>& GetAllShaders() const { return shaders; }
 
 		bool Exists(const std::string& name) const;
 	private:

@@ -47,6 +47,7 @@ namespace mist {
 
 		Ref<VulkanRenderData> CreateNewRenderData();
 		Ref<VulkanRenderData> GetRenderData(const uint8_t renderDataId) { return renderDatas[renderDataId]; }
+		inline const size_t GetRenderDataCount() const { return renderDatas.size(); }
 
 		inline const VkInstance GetInstance() const { return instance; }
 		inline const VkSurfaceKHR GetSurface() const { return surface; }

@@ -7,7 +7,7 @@
 namespace mist {
     class MeshRenderer {
     public:
-        MeshRenderer(Transform& transform, std::string shaderName, Ref<Mesh> mesh);
+        MeshRenderer(Transform& transform, Ref<Mesh> mesh);
         ~MeshRenderer();
 
         void Bind(const uint8_t renderDataID);
@@ -18,7 +18,6 @@ namespace mist {
         inline void SetTransform(Transform& value) { transformComponent = value; }
 		inline Transform& GetTransform() const { return transformComponent; }
 
-        std::string shaderName; // TODO: this will be changed when doing materials properly
         Ref<Mesh> mesh;
         Ref<VertexBuffer> vBuffer;
         Ref<IndexBuffer> iBuffer;

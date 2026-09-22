@@ -4,6 +4,7 @@
 #include <renderer/Framebuffer.hpp>
 #include <renderer/Buffer.hpp>
 #include <renderer/Shader.hpp>
+#include <renderer/Material.hpp>
 #include <components/Camera.hpp>
 #include <imgui/ImguiLayer.hpp>
 #include <entt/entt.hpp>
@@ -32,6 +33,7 @@ namespace mistEditor {
 		glm::vec2 sceneViewportSize = { 0, 0 };
 
 		mist::Ref<mist::Shader> testShader;
+		mist::Ref<mist::Material> material; 
 		std::vector<mist::Ref<mist::Mesh>> testMeshes;
 	};
 }

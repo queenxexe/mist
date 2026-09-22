@@ -52,6 +52,7 @@ find_package(spirv_cross_reflect CONFIG REQUIRED)
 find_package(spirv_cross_c CONFIG REQUIRED)
 find_package(assimp CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
+find_package(Stb REQUIRED)
 
 add_library(mist STATIC ${SOURCES})
 
@@ -64,6 +65,7 @@ set_target_properties(mist PROPERTIES
 target_include_directories(mist
 	PRIVATE "src/"
 	PUBLIC "include/"
+    PRIVATE ${Stb_INCLUDE_DIR}
 )
 
 target_link_libraries(mist

@@ -117,10 +117,10 @@ namespace mist {
 		VulkanContext& context = VulkanContext::GetContext();
 		
 		if (view != VK_NULL_HANDLE)
-		vkDestroyImageView(context.GetDevice(), view, context.GetAllocationCallbacks());
+			vkDestroyImageView(context.GetDevice(), view, context.GetAllocationCallbacks());
 		
 		if (image != VK_NULL_HANDLE)
-		vmaDestroyImage(context.GetAllocator(), image, imageAlloc);
+			vmaDestroyImage(context.GetAllocator(), image, imageAlloc);
 	}
 	
 	VulkanRenderData::VulkanRenderData(const uint8_t ID) : RenderData(ID) {}
@@ -136,7 +136,8 @@ namespace mist {
 	void VulkanRenderData::Cleanup() {
 		VulkanContext& context = VulkanContext::GetContext();
 
-		descriptors.Cleanup();
+		imguiContext.Cleanup();
+		vda.Cleanup();
 		pipeline.Cleanup();
 
 		for (VkFramebuffer& framebuffer : framebuffers)
@@ -167,12 +168,9 @@ namespace mist {
 			CreateFramebuffers(properties);
 			break;
 		}
-
-		descriptors.Cleanup();
-		pipeline.Cleanup();
 	}
 
-	void VulkanRenderData::CreateAttachmentImage(const FramebufferProperties& properties, const FramebufferTextureFormat& attachmentFormat, const size_t imageIndex, const size_t attachmentIndex) {
+	void VulkanRenderData::CreateAttachmentImage(const FramebufferProperties& properties, const TextureFormat& attachmentFormat, const size_t imageIndex, const size_t attachmentIndex) {
 		VulkanContext& context = VulkanContext::GetContext();
 		bool isDepthStencilFormat = VulkanHelper::IsDepthStencilFormat(attachmentFormat);
 		bool isDepthFormat = VulkanHelper::IsDepthFormat(attachmentFormat);
@@ -198,7 +196,7 @@ namespace mist {
 
 		framebufferAttachments[imageIndex][attachmentIndex] = {};
 		CheckVkResult(vmaCreateImage(context.GetAllocator(), &imageInfo, &imageAllocInfo, &framebufferAttachments[imageIndex][attachmentIndex].image, &framebufferAttachments[imageIndex][attachmentIndex].imageAlloc, nullptr));
-			
+
 		VkImageViewCreateInfo imageViewInfo {};
 		imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		imageViewInfo.image = framebufferAttachments[imageIndex][attachmentIndex].image;

@@ -14,6 +14,12 @@ namespace mist {
 		loadedScenes[activeScene].destroy(entity);
 	}
 
+	void SceneManager::SubmitSkybox(const uint8_t renderDataID, const int32_t sceneIndex, const Ref<Material>& skyboxMaterial) {
+		ShaderLibrary* shaderLib = Application::Get().GetShaderLibrary();
+		skyboxMaterial->Bind(renderDataID);
+		Application::Get().GetRenderAPI()->DrawFullscreen();
+	}
+
 	void SceneManager::SubmitScene(const uint8_t renderDataID, const int32_t sceneIndex) {
 		auto lightView = loadedScenes[sceneIndex].view<DirectionalLight>();
 		for (auto entity : lightView) {
@@ -21,19 +27,24 @@ namespace mist {
 			break;	// Only pass the first directional light as there should only be 1
 		}
 		
-		ShaderLibrary* shaderLib = Application::Get().GetShaderLibrary();
-		auto view = loadedScenes[sceneIndex].view<MeshRenderer>();
+		MaterialLibrary* materialLib = Application::Get().GetMaterialLibrary();
+		auto view = loadedScenes[sceneIndex].view<MeshRenderer, MaterialRef>();
 		
 		// Binding and unbinding a shader pipeline after each object is terrible but will do for testing sake
 		// ideally we bind a shader then render everything with that shader before moving on
 		// unless there is better methods im unaware of
-		std::string currentPipeline;
-		view.each([renderDataID, shaderLib, &currentPipeline](MeshRenderer &renderer) {
-			if (renderer.shaderName.compare(currentPipeline) != 0) {
-				shaderLib->Get(renderer.shaderName)->Bind(renderDataID);
-				currentPipeline = renderer.shaderName;
+		std::string currentShaderName = "";
+		view.each([renderDataID, materialLib, &currentShaderName](MeshRenderer& renderer, MaterialRef& materialRef) {
+			Ref<Material> material = materialLib->Get(materialRef.materialID);
+			std::string shaderName = material->GetShader()->GetName();
+			if (shaderName != currentShaderName) {
+				material->GetShader()->Bind(renderDataID);
+				currentShaderName = shaderName;
 			}
 			
+			material->Bind(renderDataID);
+			glm::mat4 matrix = renderer.GetTransform().GetLocalToWorldMatrix();
+			material->SetPushConstant(renderDataID, "ModelMatrix", sizeof(matrix), &matrix);
 			renderer.Bind(renderDataID);
 			renderer.Draw();
 		});
@@ -76,7 +87,7 @@ namespace mist {
 
 	void SceneManager::SetActiveScene(const int32_t sceneIndex) {
 		activeScene = sceneIndex;
-		MIST_INFO(std::string("Set active scene to ") + std::to_string(sceneIndex));
+		MIST_INFO("Set active scene to {}", sceneIndex);
 	}
 
 	void SceneManager::Cleanup() {

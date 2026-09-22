@@ -4,6 +4,7 @@
 #include "LayerStack.hpp"
 #include "renderer/RenderAPI.hpp"
 #include "renderer/Shader.hpp"
+#include "renderer/Material.hpp"
 #include "SceneManager.hpp"
 #include "physics/Physics.hpp"
 
@@ -29,6 +30,7 @@ namespace mist {
 		inline Window* GetWindow() { return window; }
 		inline const char* GetApplicationName() { return appName; }
 		inline ShaderLibrary* GetShaderLibrary() { return &shaderLib; }
+		inline MaterialLibrary* GetMaterialLibrary() { return &materialLib; }
 		inline SceneManager* GetSceneManager() { return &sceneManager; }
 	private:
 		static Application* instance;
@@ -39,6 +41,7 @@ namespace mist {
 		float deltaTime = 0;
 		LayerStack layerStack;
 		ShaderLibrary shaderLib;
+		MaterialLibrary materialLib;
 		Window* window;
 		RenderAPI* renderAPI;
 		SceneManager sceneManager;
