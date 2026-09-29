@@ -17,19 +17,6 @@ namespace mist {
 		return nullptr;
 	}
 
-	Ref<Shader> Shader::Create(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc) {
-		switch (Application::Get().GetRenderAPI()->GetAPI()) {
-		case RenderAPI::None:
-			MIST_ASSERT(false, "No render API set");
-			return nullptr;
-		case RenderAPI::Vulkan:
-			return CreateRef<VulkanShader>(name, vertexSrc, fragmentSrc);
-		}
-
-		MIST_ASSERT(false, "Unsupported API selected");
-		return nullptr;
-	}
-
 	void ShaderLibrary::Add(const Ref<Shader>& shader) {
 		auto& name = shader->GetName();
 		MIST_ASSERT(!Exists(name), "Shader already exists.");

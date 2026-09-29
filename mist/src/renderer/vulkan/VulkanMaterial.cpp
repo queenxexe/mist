@@ -2,6 +2,7 @@
 #include <map>
 #include "Debug.hpp"
 #include "renderer/vulkan/VulkanContext.hpp"
+#include "renderer/vulkan/VulkanImage.hpp"
 #include "VulkanDebug.hpp"
 #include "Application.hpp"
 
@@ -45,7 +46,9 @@ namespace mist {
 	}
 
 	void VulkanMaterial::SetTexture(const uint8_t renderDataID, const std::string& name, const Ref<Image>& texture) {
-		
+		VulkanMaterialRenderData& data = materialRenderData[renderDataID];
+		data.textures[name] = texture;
+		data.descriptorDirty = true;
 	}
 
 	void VulkanMaterial::SetUniformData(const uint8_t renderDataID, const std::string& name, size_t size, const void* value) {
@@ -65,8 +68,10 @@ namespace mist {
 		
 		std::vector<VkWriteDescriptorSet> writes;
 		std::vector<VkDescriptorBufferInfo> bufferInfos;
+		std::vector<VkDescriptorImageInfo> textureInfos;
 		writes.reserve(vkShader->GetUboResources().size());
 		bufferInfos.reserve(vkShader->GetUboResources().size());
+		textureInfos.reserve(vkShader->GetTextureResources().size());
 
 		for (const auto& [name, resources] : vkShader->GetUboResources()) {
 			auto it = data.uniformBuffers.find(name);
@@ -88,6 +93,30 @@ namespace mist {
 			write.descriptorType = resources.type;
 			write.descriptorCount = 1;
 			write.pBufferInfo = &bufferInfos.back();
+			writes.push_back(write);
+		}
+
+		for (const auto& [name, resources] : vkShader->GetTextureResources()) {
+			auto it = data.textures.find(name);
+			if (it == data.textures.end())
+				continue;
+
+			Ref<VulkanImage> vkImage = std::dynamic_pointer_cast<VulkanImage>(it->second);
+
+			VkDescriptorImageInfo textureInfo{};
+			textureInfo.sampler = vkImage->GetImageSampler();
+			textureInfo.imageView = vkImage->GetImageView();
+			textureInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			textureInfos.push_back(textureInfo);
+
+			VkWriteDescriptorSet write{};
+			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			write.dstSet = data.descriptorSets[resources.set];
+			write.dstBinding = resources.binding;
+			write.dstArrayElement = 0;
+			write.descriptorType = resources.type;
+			write.descriptorCount = 1;
+			write.pImageInfo = &textureInfos.back();
 			writes.push_back(write);
 		}
 

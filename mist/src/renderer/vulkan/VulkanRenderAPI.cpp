@@ -44,7 +44,7 @@ namespace mist {
 		lightData.u_LightColor = light.lightColor;
 
 		auto& materials = Application::Get().GetMaterialLibrary()->GetAllMaterials();
-		for (const auto&[name, material] : materials) {
+		for (const auto&[id, material] : materials) {
 			material->SetUniformData(renderDataID, "DirectionalLightData", sizeof(lightData), &lightData);
 		}
 	}
@@ -55,7 +55,7 @@ namespace mist {
 		camData.u_ViewProjectionMatrix = VulkanHelper::GetFlippedViewProjectionMatrix(camera);
 		
 		auto& materials = Application::Get().GetMaterialLibrary()->GetAllMaterials();
-		for (const auto&[name, material] : materials) {
+		for (const auto&[id, material] : materials) {
 			material->SetUniformData(renderDataID, "CameraData", sizeof(camData), &camData);
 		}
 	}

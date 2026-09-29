@@ -25,5 +25,7 @@ namespace mist {
 		static VkPresentModeKHR GetPresentMode(RenderAPI::VSYNC mode);
 		static glm::mat4 GetFlippedProjectionMatrix(glm::mat4 projectionMatrix);
 		static glm::mat4 GetFlippedViewProjectionMatrix(const mist::Camera& camera);
+		static uint32_t GetByteSizeFromFormat(const TextureFormat& format);
+		static VkCullModeFlags GetVkCullFlagsFromCullMode(const CullMode& mode);
 	};
 }

@@ -333,4 +333,50 @@ namespace mist {
 		glm::mat4 flipped = GetFlippedProjectionMatrix(camera.GetProjectionMatrix());
 		return flipped * camera.GetViewMatrix();
 	}
+
+	// Gets the byte size for each format
+	// Note: Compressed color formats are not included as would require specific handling
+	uint32_t VulkanHelper::GetByteSizeFromFormat(const TextureFormat& format) {
+		switch (format) {
+		// Color formats
+		case TextureFormat::RGBA8:				return 4;
+		case TextureFormat::BGRA8:				return 4;
+		case TextureFormat::RGB8:				return 3;
+		case TextureFormat::BGR8:				return 3;
+		case TextureFormat::RGBA16F:			return 8;
+		case TextureFormat::RGBA32F:			return 16;
+		case TextureFormat::RGB565:				return 2;
+		case TextureFormat::RGBA4:				return 2;
+		case TextureFormat::RG8:				return 2;
+		case TextureFormat::RG16F:				return 4;
+		case TextureFormat::R32F:				return 4;
+		case TextureFormat::R11F_G11F_B10F:		return 4;
+		case TextureFormat::RGB9_E5:			return 4;
+		case TextureFormat::R8:					return 1;
+		case TextureFormat::SR8:				return 1;
+		case TextureFormat::SRGB8_ALPHA8:		return 4;
+		case TextureFormat::SBGRA8:				return 4;
+		case TextureFormat::RGB10_A2:			return 4;
+		case TextureFormat::R16:				return 2;
+		// Depth/Stencil formats
+		case TextureFormat::DEPTH16:			return 2;
+		case TextureFormat::DEPTH24X8:			return 4;
+		case TextureFormat::DEPTH32:			return 4;
+		case TextureFormat::DEPTH16_STENCIL8:	return 3;
+		case TextureFormat::DEPTH24_STENCIL8:	return 4;
+		case TextureFormat::DEPTH32_STENCIL8:	return 8;
+		case TextureFormat::STENCIL8:			return 1;
+		default:								
+			MIST_WARN("Unknown format or attempted to passed a compressed format. Will default to 4");
+			return 4;	
+		}
+	}
+
+	VkCullModeFlags VulkanHelper::GetVkCullFlagsFromCullMode(const CullMode& mode) {
+		switch (mode) {
+			case CullMode::CULL_BACK: return VK_CULL_MODE_BACK_BIT;
+			case CullMode::CULL_FRONT: return VK_CULL_MODE_FRONT_BIT;
+			case CullMode::CULL_OFF: return VK_CULL_MODE_NONE;
+		}
+	}
 }

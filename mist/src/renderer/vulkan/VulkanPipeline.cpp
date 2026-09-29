@@ -1,6 +1,7 @@
 #include "VulkanPipeline.hpp"
 #include <set>
 #include "renderer/vulkan/VulkanContext.hpp"
+#include "renderer/vulkan/VulkanHelper.hpp"
 #include "VulkanDebug.hpp"
 
 namespace mist {
@@ -41,7 +42,7 @@ namespace mist {
 		rasterizer.rasterizerDiscardEnable = VK_FALSE;
 		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 		rasterizer.lineWidth = 1.0f;
-		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+		rasterizer.cullMode = VulkanHelper::GetVkCullFlagsFromCullMode(shader.GetCullMode());
 		rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
 		rasterizer.depthBiasEnable = VK_FALSE;
 		rasterizer.depthBiasConstantFactor = 0.0f;
@@ -57,10 +58,12 @@ namespace mist {
 		multisampling.alphaToCoverageEnable = VK_FALSE;
 		multisampling.alphaToOneEnable = VK_FALSE;
 
+
+		VkBool32 depthTestingEnabled = shader.IsDepthTesting() ? VK_TRUE : VK_FALSE;
 		VkPipelineDepthStencilStateCreateInfo depthStencil{};
 		depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-		depthStencil.depthTestEnable = VK_TRUE;
-		depthStencil.depthWriteEnable = VK_TRUE;
+		depthStencil.depthTestEnable = depthTestingEnabled;
+		depthStencil.depthWriteEnable = depthTestingEnabled;	// Probably should make this separate but will do for now
 		depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
 		depthStencil.minDepthBounds = 0.0f;
 		depthStencil.maxDepthBounds = 1.0f;

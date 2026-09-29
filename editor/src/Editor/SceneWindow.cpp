@@ -73,6 +73,14 @@ namespace mistEditor {
 		const entt::entity directionalLightEntity = sm->CreateEntity();
 		mist::Transform& directionalLightT = sm->AddComponent<mist::Transform>(directionalLightEntity, glm::vec3(0, 0, -5), glm::quat(glm::radians(glm::vec3(-45, 180, 0))));
 		mist::DirectionalLight& directionalLight = sm->AddComponent<mist::DirectionalLight>(directionalLightEntity, directionalLightT, glm::vec3(1,1,1));
+	
+		skyboxImage = mist::Image::Create("assets/testHDR.hdr", mist::TextureFormat::RGBA32F);
+		skyboxShader = mist::Application::Get().GetShaderLibrary()->Load("assets/shaders/skybox.glsl");
+		skyboxMat = mist::Application::Get().GetMaterialLibrary()->Create(skyboxShader);
+		skyboxMat->SetTexture(renderData->GetRenderDataID(), "skybox", skyboxImage);
+
+		// skyboxShader = mist::Application::Get().GetShaderLibrary()->Load("assets/shaders/fullscreenTest.glsl");
+		// skyboxMat = mist::Application::Get().GetMaterialLibrary()->Create(skyboxShader);
 	}
 
 	void SceneWindow::Cleanup() {}
@@ -155,6 +163,7 @@ namespace mistEditor {
 		mist::SceneManager* sm = mist::Application::Get().GetSceneManager();
 		mist::Camera& cam = dynamic_cast<mist::Camera&>(sm->GetComponent<mist::SceneCamera>(sceneCameraEntity));
 		sm->UpdateSceneCamera(cam, renderData->GetRenderDataID());
+		sm->SubmitActiveSceneSkybox(renderData->GetRenderDataID(), skyboxMat);
 		sm->SubmitActiveScene(renderData->GetRenderDataID());
 		renderAPI->EndRenderPass();
 	}

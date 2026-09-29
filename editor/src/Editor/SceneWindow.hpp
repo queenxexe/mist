@@ -34,6 +34,9 @@ namespace mistEditor {
 
 		mist::Ref<mist::Shader> testShader;
 		mist::Ref<mist::Material> material; 
+		mist::Ref<mist::Image> skyboxImage;
+		mist::Ref<mist::Shader> skyboxShader;
+		mist::Ref<mist::Material> skyboxMat;
 		std::vector<mist::Ref<mist::Mesh>> testMeshes;
 	};
 }

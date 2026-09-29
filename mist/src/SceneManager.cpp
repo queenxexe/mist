@@ -16,6 +16,7 @@ namespace mist {
 
 	void SceneManager::SubmitSkybox(const uint8_t renderDataID, const int32_t sceneIndex, const Ref<Material>& skyboxMaterial) {
 		ShaderLibrary* shaderLib = Application::Get().GetShaderLibrary();
+		skyboxMaterial->GetShader()->Bind(renderDataID);
 		skyboxMaterial->Bind(renderDataID);
 		Application::Get().GetRenderAPI()->DrawFullscreen();
 	}

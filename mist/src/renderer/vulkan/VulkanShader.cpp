@@ -112,8 +112,23 @@ namespace mist {
 		if (type == "compute" || type == "comp") return EShLangCompute;
 		if (type == "geometry" || type == "geo") return EShLangGeometry;
 
-		MIST_ASSERT(false, "Unknown shader type, defaulting to vertex");
+		MIST_WARN("Unknown shader type: {}, defaulting to vertex", type);
 		return EShLangVertex;
+	}
+
+	static CullMode CullModeFromString(const std::string& mode) {
+		if (mode == "back") return CullMode::CULL_BACK;
+		if (mode == "front") return CullMode::CULL_FRONT;
+		if (mode == "off") return CullMode::CULL_OFF;
+		MIST_WARN("Unknown cull mode: {}, defaulting to back", mode);
+		return CullMode::CULL_BACK;
+	}
+
+	static bool BoolFromString(const std::string& s) {
+		if (s == "true") return true;
+		if (s == "false") return false;
+		MIST_WARN("Unknown bool: {}, defaulting to false", s);
+		return false;
 	}
 
 	static VkShaderStageFlagBits EShLanguageToVkStageFlags(EShLanguage stage) {
@@ -141,10 +156,13 @@ namespace mist {
 	VulkanShader::VulkanShader(const std::string& path) : Shader() {
 		shaderName = std::filesystem::path(path).stem().string();
 		std::string src = Utils::ReadFile(path);
-		std::unordered_map<EShLanguage, std::string> shaderSources = PreProcess(src);
+		PreprocessInfo preprocess = PreProcess(src);
+
+		cullMode = preprocess.cullMode;
+		depthTestingEnabled = preprocess.depthTestingEnabled;
 
 		glslang::InitializeProcess();
-		for (std::pair<EShLanguage, std::string> src : shaderSources) {
+		for (std::pair<EShLanguage, std::string> src : preprocess.shaderSources) {
 			std::vector<uint32_t> spirv = ConvertGLSLToSPIRV(src.second, src.first);
 			Compile(spirv, src.first);
 		}
@@ -152,22 +170,6 @@ namespace mist {
 		glslang::FinalizeProcess();
 
 		MIST_INFO("Loaded shader and created graphics pipeline for: {}", shaderName);
-	}
-
-	VulkanShader::VulkanShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc) : shaderName(name) {
-		std::unordered_map<EShLanguage, std::string> shaderSources;
-		shaderSources[EShLangVertex] = vertexSrc;
-		shaderSources[EShLangFragment] = fragmentSrc;
-
-		glslang::InitializeProcess();
-		for (std::pair<EShLanguage, std::string> src : shaderSources) {
-			std::vector<uint32_t> spirv = ConvertGLSLToSPIRV(src.second, src.first);
-			Compile(spirv, src.first);
-		}
-		CreateDescriptorSetLayouts();
-		glslang::FinalizeProcess();
-
-		MIST_INFO("Loaded shader and created graphics pipeline for: {}", name);
 	}
 
 	VulkanShader::~VulkanShader() {
@@ -185,25 +187,55 @@ namespace mist {
 		}
 	}
 
-	std::unordered_map<EShLanguage, std::string> VulkanShader::PreProcess(const std::string& src) {
-		std::unordered_map<EShLanguage, std::string> shaderSources;
+	PreprocessInfo VulkanShader::PreProcess(const std::string& src) {
+		PreprocessInfo info{};
+		info.cullMode = CullMode::CULL_BACK;
+		info.depthTestingEnabled = true;
 
-		const char* typeToken = "#type";
-		size_t typeTokenLength = strlen(typeToken);
-		size_t pos = src.find(typeToken, 0);
-		while (pos != std::string::npos) {
-			size_t eol = src.find_first_of("\r\n", pos);
-			MIST_ASSERT(eol != std::string::npos, "Syntax Error.");
+		{
+			const char* typeToken = "#type";
+			size_t tokenLength = strlen(typeToken);
+			size_t pos = src.find(typeToken, 0);
+			while (pos != std::string::npos) {
+				size_t eol = src.find_first_of("\r\n", pos);
+				MIST_ASSERT(eol != std::string::npos, "Syntax Error.");
 
-			size_t begin = pos + typeTokenLength + 1;
-			std::string type = src.substr(begin, eol - begin);
+				size_t begin = pos + tokenLength + 1;
+				std::string result = src.substr(begin, eol - begin);
 
-			size_t nextLinePos = src.find_first_not_of("\r\n", eol);
-			pos = src.find(typeToken, nextLinePos);
-			shaderSources[ShaderTypeFromString(type)] = src.substr(nextLinePos, pos - (nextLinePos == std::string::npos ? src.size() - 1 : nextLinePos));
+				size_t nextLinePos = src.find_first_not_of("\r\n", eol);
+				pos = src.find(typeToken, nextLinePos);
+				info.shaderSources[ShaderTypeFromString(result)] = src.substr(nextLinePos, pos - (nextLinePos == std::string::npos ? src.size() - 1 : nextLinePos));
+			}
 		}
 
-		return shaderSources;
+		{
+			const char* cullToken = "#cullmode";
+			size_t tokenLength = strlen(cullToken);
+			size_t pos = src.find(cullToken, 0);
+			if (pos != std::string::npos) {
+				size_t eol = src.find_first_of("\r\n", pos);
+				size_t begin = pos + tokenLength + 1;
+				std::string result = src.substr(begin, eol - begin);
+
+				info.cullMode = CullModeFromString(result);
+			}
+		}
+
+		{
+			const char* depthToken = "#depthtest";
+			size_t tokenLength = strlen(depthToken);
+			size_t pos = src.find(depthToken, 0);
+			if (pos != std::string::npos) {
+				size_t eol = src.find_first_of("\r\n", pos);
+				size_t begin = pos + tokenLength + 1;
+				std::string result = src.substr(begin, eol - begin);
+
+				info.depthTestingEnabled = BoolFromString(result);
+			}
+		}
+
+		return info;
 	}
 
 	std::vector<uint32_t> VulkanShader::ConvertGLSLToSPIRV(const std::string& src, EShLanguage stage) {
@@ -374,7 +406,7 @@ namespace mist {
 		}
 
 		for (const spirv_cross::Resource& ubo : resources.uniform_buffers) {
-			UBOShaderResource res;
+			ShaderDescriptorResource res;
 			res.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			res.binding = compiler.get_decoration(ubo.id, spv::DecorationBinding);
 			res.offset = compiler.get_decoration(ubo.id, spv::DecorationOffset);
@@ -420,7 +452,7 @@ namespace mist {
 			res.count = 1;
 			res.flags = EShLanguageToVkStageFlags(stage);
 		
-			shaderDescriptors[sampled.name] = res;
+			shaderTextures[sampled.name] = res;
 			CreateDescriptorSetLayoutBinding(res.set, res.binding, res.type, res.count, res.flags);
 		}
 
@@ -439,8 +471,9 @@ namespace mist {
 		for (const spirv_cross::Resource& samplers : resources.separate_samplers) {
 			ShaderDescriptorResource res;
 			res.type = VK_DESCRIPTOR_TYPE_SAMPLER;
-			res.set = compiler.get_decoration(samplers.id, spv::DecorationDescriptorSet);
 			res.binding = compiler.get_decoration(samplers.id, spv::DecorationBinding);
+			res.offset = 0;
+			res.set = compiler.get_decoration(samplers.id, spv::DecorationDescriptorSet);
 			res.count = 1;
 			res.flags = EShLanguageToVkStageFlags(stage);
 		

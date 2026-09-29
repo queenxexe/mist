@@ -9,6 +9,7 @@ namespace mist {
 	struct VulkanMaterialRenderData {
 		std::vector<VkDescriptorSet> descriptorSets;
 		std::unordered_map<std::string, UniformBuffer> uniformBuffers;
+		std::unordered_map<std::string, Ref<Image>> textures;
 		bool descriptorDirty = true;
 	};
 
