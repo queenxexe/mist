@@ -24,7 +24,6 @@ namespace mist {
 		ImTextureID AddTexture(const Ref<RenderData>& renderData);
 		void UpdateTexture(ImTextureID& id, const Ref<RenderData>& renderData);
 		void RemoveTexture(const ImTextureID& id);
-		void ImGuiImage(const ImTextureRef& texture, const ImVec2& imageSize, const ImVec2& uv0, const ImVec2& uv1);
 	protected:
 		void SetDarkThemeColors();
 

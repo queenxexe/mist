@@ -150,7 +150,7 @@ namespace mistEditor {
 			static_cast<float>(renderData->GetProperties().width),
 			static_cast<float>(renderData->GetProperties().height)
 		};
-		parent->ImGuiImage(sceneFramebufferID, imageSize, ImVec2{0, 0}, ImVec2{1, 1});
+		ImGui::Image(sceneFramebufferID, imageSize, ImVec2{0, 0}, ImVec2{1, 1});
 
 		focused = ImGui::IsWindowFocused(ImGuiWindowFlags_NoFocusOnAppearing);
 		ImGui::End();
