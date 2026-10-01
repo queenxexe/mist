@@ -5,15 +5,19 @@
 #include "renderer/vulkan/VulkanImage.hpp"
 #include "VulkanDebug.hpp"
 #include "Application.hpp"
+#include "ResourceManagerInternal.hpp"
 
 namespace mist {
-	VulkanMaterial::VulkanMaterial(const uint32_t materialID, const Ref<Shader>& shader) : Material(materialID, shader) {
+	VulkanMaterial::VulkanMaterial(const ShaderRef& shader) : Material(shader) {
 		VulkanContext& context = VulkanContext::GetContext();
-		const auto& layouts = std::dynamic_pointer_cast<VulkanShader>(shader)->GetDescriptorSetLayouts();
+		ResourceManager* rm = Application::Get().GetResourceManager();
+		std::shared_ptr<VulkanShader> vkShader = std::dynamic_pointer_cast<VulkanShader>(ResourceManagerInternal::GetShader(rm, shader.id));
+		
+		const auto& layouts = vkShader->GetDescriptorSetLayouts();
 		uint8_t count = static_cast<uint8_t>(context.GetRenderDataCount());
 
 		for (uint8_t i = 0; i < count; ++i) {
-			Ref<VulkanRenderData> renderData = context.GetRenderData(i);
+			std::shared_ptr<VulkanRenderData> renderData = context.GetRenderData(i);
 			
 			VulkanMaterialRenderData& data = materialRenderData[i];
 			data.descriptorSets.resize(layouts.size());
@@ -24,7 +28,9 @@ namespace mist {
 		}
 	}
 
-	VulkanMaterial::~VulkanMaterial() {}
+	VulkanMaterial::~VulkanMaterial() {
+		Cleanup();
+	}
 
 	void VulkanMaterial::Cleanup() {
 		materialRenderData.clear();
@@ -32,20 +38,21 @@ namespace mist {
 
 	void VulkanMaterial::Bind(const uint8_t renderDataID) {
 		VulkanContext& context = VulkanContext::GetContext();
-		Ref<VulkanRenderData> vkRenderData = context.GetRenderData(renderDataID);
+		std::shared_ptr<VulkanRenderData> vkRenderData = context.GetRenderData(renderDataID);
 
 		VulkanMaterialRenderData& data = materialRenderData[renderDataID];
 		if (data.descriptorDirty)
 			UpdateDescriptors(renderDataID);
 
 		VkCommandBuffer cmd = context.GetCurrentFrameCommandBuffer();
-		VkPipelineLayout pipelineLayout = vkRenderData->pipeline.GetGraphicsPipelineLayout(shader->GetName());
+		std::shared_ptr<Shader> shaderData = ResourceManagerInternal::GetShader(Application::Get().GetResourceManager(), shader.id);
+		VkPipelineLayout pipelineLayout = vkRenderData->pipeline.GetGraphicsPipelineLayout(shaderData->GetName());
 		for (uint32_t set = 0; set < data.descriptorSets.size(); ++set) {
 			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, set, 1, &data.descriptorSets[set], 0, nullptr);
 		}
 	}
 
-	void VulkanMaterial::SetTexture(const uint8_t renderDataID, const std::string& name, const Ref<Image>& texture) {
+	void VulkanMaterial::SetTexture(const uint8_t renderDataID, const std::string& name, const std::shared_ptr<Image>& texture) {
 		VulkanMaterialRenderData& data = materialRenderData[renderDataID];
 		data.textures[name] = texture;
 		data.descriptorDirty = true;
@@ -59,11 +66,13 @@ namespace mist {
 	}
 
 	void VulkanMaterial::SetPushConstant(const uint8_t renderDataID, const std::string& name, size_t size, const void* value) {
-		shader->SetPushConstant(renderDataID, name, size, value);
+		std::shared_ptr<Shader> shaderData = ResourceManagerInternal::GetShader(Application::Get().GetResourceManager(), shader.id);
+		shaderData->SetPushConstant(renderDataID, name, size, value);
 	}
 
 	void VulkanMaterial::UpdateDescriptors(const uint8_t renderDataID) {
-		Ref<VulkanShader> vkShader = std::dynamic_pointer_cast<VulkanShader>(shader);
+		std::shared_ptr<Shader> shaderData = ResourceManagerInternal::GetShader(Application::Get().GetResourceManager(), shader.id);
+		std::shared_ptr<VulkanShader> vkShader = std::dynamic_pointer_cast<VulkanShader>(shaderData);
 		VulkanMaterialRenderData& data = materialRenderData[renderDataID];
 		
 		std::vector<VkWriteDescriptorSet> writes;
@@ -101,7 +110,7 @@ namespace mist {
 			if (it == data.textures.end())
 				continue;
 
-			Ref<VulkanImage> vkImage = std::dynamic_pointer_cast<VulkanImage>(it->second);
+			std::shared_ptr<VulkanImage> vkImage = std::dynamic_pointer_cast<VulkanImage>(it->second);
 
 			VkDescriptorImageInfo textureInfo{};
 			textureInfo.sampler = vkImage->GetImageSampler();

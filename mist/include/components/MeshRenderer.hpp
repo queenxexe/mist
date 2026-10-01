@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <string>
 #include "data/Mesh.hpp"
 #include "renderer/Buffer.hpp"
@@ -7,7 +8,7 @@
 namespace mist {
     class MeshRenderer {
     public:
-        MeshRenderer(Transform& transform, Ref<Mesh> mesh);
+        MeshRenderer(Transform& transform, std::shared_ptr<Mesh> mesh);
         ~MeshRenderer();
 
         void Bind(const uint8_t renderDataID);
@@ -18,9 +19,9 @@ namespace mist {
         inline void SetTransform(Transform& value) { transformComponent = value; }
 		inline Transform& GetTransform() const { return transformComponent; }
 
-        Ref<Mesh> mesh;
-        Ref<VertexBuffer> vBuffer;
-        Ref<IndexBuffer> iBuffer;
+        std::shared_ptr<Mesh> mesh;
+        std::shared_ptr<VertexBuffer> vBuffer;
+        std::shared_ptr<IndexBuffer> iBuffer;
     private:
         Transform& transformComponent;
     };

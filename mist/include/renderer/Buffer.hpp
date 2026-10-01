@@ -1,6 +1,6 @@
 #pragma once
-#include "Core.hpp"
 #include <vector>
+#include <memory>
 #include <string>
 #include "Math.hpp"
 #include "data/Mesh.hpp"
@@ -93,7 +93,7 @@ namespace mist {
 		virtual void Bind() const = 0;
 		virtual void SetData(const std::vector<Vertex>& vertices) = 0;
 
-		static Ref<VertexBuffer> Create(const std::vector<Vertex>& vertices);
+		static std::shared_ptr<VertexBuffer> Create(const std::vector<Vertex>& vertices);
 	};
 
 	class IndexBuffer {
@@ -102,6 +102,6 @@ namespace mist {
 		virtual void Bind() const = 0;
 		virtual void SetData(const std::vector<uint32_t>& indices) = 0;
 
-		static Ref<IndexBuffer> Create(const std::vector<uint32_t>& indices);
+		static std::shared_ptr<IndexBuffer> Create(const std::vector<uint32_t>& indices);
 	};
 }

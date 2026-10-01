@@ -1,13 +1,10 @@
 #pragma once
 #include <Math.hpp>
-#include "Core.hpp"
 #include "renderer/Buffer.hpp"
 #include "components/Camera.hpp"
 #include "components/MeshRenderer.hpp"
 #include "components/DirectionalLight.hpp"
 #include "Framebuffer.hpp"
-#include "data/Image.hpp"
-#include "renderer/Material.hpp"
 
 namespace mist {
 	class RenderAPI {

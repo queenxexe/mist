@@ -1,13 +1,12 @@
 #pragma once
+#include <memory>
 #include <Math.hpp>
-#include <Core.hpp>
 #include <renderer/Framebuffer.hpp>
 #include <renderer/Buffer.hpp>
-#include <renderer/Shader.hpp>
-#include <renderer/Material.hpp>
 #include <components/Camera.hpp>
 #include <imgui/ImguiLayer.hpp>
 #include <entt/entt.hpp>
+#include <data/RefTypes.hpp>
 
 namespace mistEditor {
 	class SceneWindow {
@@ -23,7 +22,7 @@ namespace mistEditor {
 	private:
 		bool focused = false;
 		mist::ImguiLayer* parent;
-		mist::Ref<mist::RenderData> renderData;
+		std::shared_ptr<mist::RenderData> renderData;
 		entt::entity sceneCameraEntity;
 		float xRotation = 0;
 		float yRotation = 0;
@@ -32,11 +31,11 @@ namespace mistEditor {
 		ImTextureID sceneFramebufferID;
 		glm::vec2 sceneViewportSize = { 0, 0 };
 
-		mist::Ref<mist::Shader> testShader;
-		mist::Ref<mist::Material> material; 
-		mist::Ref<mist::Image> skyboxImage;
-		mist::Ref<mist::Shader> skyboxShader;
-		mist::Ref<mist::Material> skyboxMat;
-		std::vector<mist::Ref<mist::Mesh>> testMeshes;
+		mist::ShaderRef testShader;
+		mist::MaterialRef material; 
+		mist::ImageRef skyboxImage;
+		mist::ShaderRef skyboxShader;
+		mist::MaterialRef skyboxMat;
+		std::vector<std::shared_ptr<mist::Mesh>> testMeshes;
 	};
 }

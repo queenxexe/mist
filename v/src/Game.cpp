@@ -17,6 +17,7 @@ namespace V {
 		renderData = mist::RenderData::Create(properties);
 		framebufferID = parent->AddTexture(renderData);
 
+		mist::ResourceManager* rm = mist::Application::Get().GetResourceManager();
 		mist::SceneManager* sm = mist::Application::Get().GetSceneManager();
 		sm->LoadEmptyScene();
 
@@ -25,13 +26,10 @@ namespace V {
 		mist::Camera& gameCamera = sm->AddComponent<mist::Camera>(cameraEntity, gameCameraT);
 		gameCamera.SetPerspectiveCamera(1280, 720);
 
-		skyboxImage = mist::Image::Create("assets/testHDR.hdr", mist::TextureFormat::RGBA32F);
-		skyboxShader = mist::Application::Get().GetShaderLibrary()->Load("assets/shaders/skybox.glsl");
-		skyboxMat = mist::Application::Get().GetMaterialLibrary()->Create(skyboxShader);
-		skyboxMat->SetTexture(renderData->GetRenderDataID(), "skybox", skyboxImage);
-
-		// skyboxShader = mist::Application::Get().GetShaderLibrary()->Load("assets/shaders/fullscreenTest.glsl");
-		// skyboxMat = mist::Application::Get().GetMaterialLibrary()->Create(skyboxShader);
+		skyboxImage = rm->CreateImage("assets/testHDR.hdr", mist::TextureFormat::RGBA32F);
+		skyboxShader = rm->CreateShader("assets/shaders/skybox.glsl");
+		skyboxMat = rm->CreateMaterial(skyboxShader);
+		rm->SetTexture(renderData->GetRenderDataID(), skyboxMat, "skybox", skyboxImage);
 	}
 
 	void Game::Cleanup() {}

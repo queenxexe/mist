@@ -26,13 +26,13 @@ namespace mist {
 		}
 	}
 
-	Ref<RenderData> RenderData::Create(FramebufferProperties& properties) {
+	std::shared_ptr<RenderData> RenderData::Create(FramebufferProperties& properties) {
 		switch (Application::Get().GetRenderAPI()->GetAPI()) {
 		case RenderAPI::API::Vulkan:
 		{
 			ValidateFramebufferProperties(properties);
 			VulkanContext& context = VulkanContext::GetContext();
-			Ref<VulkanRenderData> data = context.CreateNewRenderData();
+			std::shared_ptr<VulkanRenderData> data = context.CreateNewRenderData();
 			
 			if (properties.type == FramebufferType::SWAPCHAIN) {
 				MIST_ASSERT(VulkanHelper::IsColorFormat(properties.attachments[0].textureFormat), "First framebuffer attachment is not a color format, cant create swapchain");

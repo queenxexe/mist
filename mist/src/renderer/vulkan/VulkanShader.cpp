@@ -179,11 +179,17 @@ namespace mist {
 	void VulkanShader::Cleanup() {
 		VulkanContext& context = VulkanContext::GetContext();
 		for (VkDescriptorSetLayout& layout : descriptorSetLayouts) {
-			vkDestroyDescriptorSetLayout(context.GetDevice(), layout, context.GetAllocationCallbacks());
+			if (layout != VK_NULL_HANDLE) {
+				vkDestroyDescriptorSetLayout(context.GetDevice(), layout, context.GetAllocationCallbacks());
+				layout = VK_NULL_HANDLE;
+			}
 		}
 
-		for (const auto& stage : shaderStages) {
-			vkDestroyShaderModule(context.GetDevice(), stage.module, context.GetAllocationCallbacks());
+		for (auto& stage : shaderStages) {
+			if (stage.module != VK_NULL_HANDLE) {
+				vkDestroyShaderModule(context.GetDevice(), stage.module, context.GetAllocationCallbacks());
+				stage.module = VK_NULL_HANDLE;
+			}
 		}
 	}
 
@@ -523,7 +529,7 @@ namespace mist {
 
 	void VulkanShader::Bind(const uint8_t renderDataId) const {
 		VulkanContext& context = VulkanContext::GetContext();
-		Ref<VulkanRenderData> data = context.GetRenderData(renderDataId);
+		std::shared_ptr<VulkanRenderData> data = context.GetRenderData(renderDataId);
 		if (!data->pipeline.HasPipeline(shaderName))
 			data->pipeline.CreateGraphicsPipeline(*this, data->renderPass, data->colorAttachmentCount);
 
@@ -538,7 +544,7 @@ namespace mist {
 
 	void VulkanShader::SetPushConstant(const uint8_t renderDataId, const std::string& name, const int size, const void* value) {
 		VulkanContext& context = VulkanContext::GetContext();
-		Ref<VulkanRenderData> renderData = context.GetRenderData(renderDataId);
+		std::shared_ptr<VulkanRenderData> renderData = context.GetRenderData(renderDataId);
 		
 #if DEBUG
 		MIST_ASSERT(shaderPushConstants.contains(name), std::string("Invalid push constants name passed: " + name));

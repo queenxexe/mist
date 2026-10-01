@@ -1,5 +1,4 @@
 #pragma once
-#include "Core.hpp"
 #include <string>
 #include <SDL3/SDL.h>
 

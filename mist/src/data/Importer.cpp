@@ -21,7 +21,7 @@ namespace mist {
 	    ));
 	}
 
-	Ref<Mesh> ProcessMesh(aiMesh* meshToProcess, const glm::mat4& transform) {
+	std::shared_ptr<Mesh> ProcessMesh(aiMesh* meshToProcess, const glm::mat4& transform) {
 	    glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(transform)));
 	    std::vector<Vertex> vertices(meshToProcess->mNumVertices);
 
@@ -44,10 +44,10 @@ namespace mist {
 	        indices.push_back(face.mIndices[2]);
 	    }
 
-	    return CreateRef<Mesh>(vertices, indices);
+	    return std::make_shared<Mesh>(vertices, indices);
 	}
 
-	void ProcessNode(aiNode* node, const aiScene* scene, const glm::mat4& parentTransform, std::vector<Ref<Mesh>>& meshes) {
+	void ProcessNode(aiNode* node, const aiScene* scene, const glm::mat4& parentTransform, std::vector<std::shared_ptr<Mesh>>& meshes) {
 	    glm::mat4 nodeTransform = parentTransform * AssimpMat4ToGLM(node->mTransformation);
 
 	    for (uint32_t i = 0; i < node->mNumMeshes; i++) {
@@ -60,7 +60,7 @@ namespace mist {
 	    }
 	}
 
-	std::vector<Ref<Mesh>> Importer::ImportMeshes(const std::string& path, bool flipWinding) {
+	std::vector<std::shared_ptr<Mesh>> Importer::ImportMeshes(const std::string& path, bool flipWinding) {
 		unsigned int flags = 
 		aiProcess_MakeLeftHanded				|
 		aiProcess_Triangulate                   |
@@ -81,10 +81,10 @@ namespace mist {
 
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
 			MIST_WARN(std::string("Assimp import error: ") + importer.GetErrorString());
-			return std::vector<Ref<Mesh>>();
+			return std::vector<std::shared_ptr<Mesh>>();
 		}
 
-		std::vector<Ref<Mesh>> meshes;
+		std::vector<std::shared_ptr<Mesh>> meshes;
 		ProcessNode(scene->mRootNode, scene, glm::mat4(1.0f), meshes);
 		return meshes;
 	}

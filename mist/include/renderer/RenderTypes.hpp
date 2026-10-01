@@ -1,8 +1,13 @@
 #pragma once
-#include <cstdint>
-#include "Core.hpp"
+#include <Math.hpp>
 
 namespace mist {
+	enum class CullMode {
+		CULL_BACK,
+		CULL_FRONT,
+		CULL_OFF
+	};
+
 	enum class TextureFormat {
 		None = 0,
 		// Color formats
@@ -79,16 +84,18 @@ namespace mist {
 		TextureFormat format;
 	};
 
-	struct Image {
-	public:
-		virtual ~Image() {};
-		
-		ImageData GetImageData() { return data; }
-		
-		// While RGBA8 is good for typical images, use RGBA16F or RGBA32F for skyboxes
-		// REPEAT is a good default but for skyboxes use CLAMP
-		static Ref<Image> Create(const std::string& imagePath, const TextureFormat desiredFormat = TextureFormat::RGBA8, const TilingMode tiling = TilingMode::REPEAT);
-	protected:
-		ImageData data;
+	// These are default types used for reflection of shaders
+
+	struct CameraData {
+		glm::mat4 u_ViewProjectionMatrix;
+	};
+
+	// vec3 in shader is actually 16bytes rather than 12 which means padding is required
+	// or it will insert the red value of color into the direction and mess with both
+	struct DirectionalLightData {
+		glm::vec3 u_LightDir;
+		float pad1;
+		glm::vec3 u_LightColor;
+		float pad2;
 	};
 }

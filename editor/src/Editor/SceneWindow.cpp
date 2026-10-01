@@ -24,6 +24,7 @@ namespace mistEditor {
 		renderData = mist::RenderData::Create(properties);
 		sceneFramebufferID = parent->AddTexture(renderData);
 
+		mist::ResourceManager* rm = mist::Application::Get().GetResourceManager();
 		mist::SceneManager* sm = mist::Application::Get().GetSceneManager();
 		sm->LoadEmptyScene();
 
@@ -32,8 +33,8 @@ namespace mistEditor {
 		mist::Camera& sceneCamera = sm->AddComponent<mist::SceneCamera>(sceneCameraEntity, sceneCameraT);
 		sceneCamera.SetPerspectiveCamera(1280, 720);
 
-		testShader = mist::Application::Get().GetShaderLibrary()->Load("assets/shaders/lambert.glsl");
-		material = mist::Application::Get().GetMaterialLibrary()->Create(testShader);
+		testShader = rm->CreateShader("assets/shaders/lambert.glsl");
+		material = rm->CreateMaterial(testShader);
 
 		//testMeshes = mist::Importer::ImportMeshes("assets/brassfang.fbx");
 		testMeshes = mist::Importer::ImportMeshes("assets/LightCycle.obj", true);
@@ -41,7 +42,7 @@ namespace mistEditor {
 			const entt::entity triEntity = sm->CreateEntity();
 			mist::Transform& testT = sm->AddComponent<mist::Transform>(triEntity, glm::vec3(-2, 0, 0), glm::quat_identity<float, glm::defaultp>(), glm::vec3(1.0f));
 			sm->AddComponent<mist::MeshRenderer>(triEntity, testT, testMeshes[0]);
-			sm->AddComponent<mist::MaterialRef>(triEntity, material->GetID());
+			sm->AddComponent<mist::MaterialRef>(triEntity, material);
 		}
 
 		std::vector<mist::Vertex> verts = {
@@ -56,13 +57,13 @@ namespace mistEditor {
 			3, 2, 1
 		};
 		
-		mist::Ref<mist::Mesh> testMesh = mist::CreateRef<mist::Mesh>(verts, indices);
+		std::shared_ptr<mist::Mesh> testMesh = std::make_shared<mist::Mesh>(verts, indices);
 		testMesh->GenerateNormals();
 		{
 			const entt::entity triEntity = sm->CreateEntity();
 			mist::Transform& testT = sm->AddComponent<mist::Transform>(triEntity, glm::vec3(2, 0, 0));
 			sm->AddComponent<mist::MeshRenderer>(triEntity, testT, testMesh);
-			sm->AddComponent<mist::MaterialRef>(triEntity, material->GetID());
+			sm->AddComponent<mist::MaterialRef>(triEntity, material);
 		}
 
 		const entt::entity gameCameraEntity = sm->CreateEntity();
@@ -74,13 +75,10 @@ namespace mistEditor {
 		mist::Transform& directionalLightT = sm->AddComponent<mist::Transform>(directionalLightEntity, glm::vec3(0, 0, -5), glm::quat(glm::radians(glm::vec3(-45, 180, 0))));
 		mist::DirectionalLight& directionalLight = sm->AddComponent<mist::DirectionalLight>(directionalLightEntity, directionalLightT, glm::vec3(1,1,1));
 	
-		skyboxImage = mist::Image::Create("assets/testHDR.hdr", mist::TextureFormat::RGBA32F);
-		skyboxShader = mist::Application::Get().GetShaderLibrary()->Load("assets/shaders/skybox.glsl");
-		skyboxMat = mist::Application::Get().GetMaterialLibrary()->Create(skyboxShader);
-		skyboxMat->SetTexture(renderData->GetRenderDataID(), "skybox", skyboxImage);
-
-		// skyboxShader = mist::Application::Get().GetShaderLibrary()->Load("assets/shaders/fullscreenTest.glsl");
-		// skyboxMat = mist::Application::Get().GetMaterialLibrary()->Create(skyboxShader);
+		skyboxImage = rm->CreateImage("assets/testHDR.hdr", mist::TextureFormat::RGBA32F);
+		skyboxShader = rm->CreateShader("assets/shaders/skybox.glsl");
+		skyboxMat = rm->CreateMaterial(skyboxShader);
+		rm->SetTexture(renderData->GetRenderDataID(), skyboxMat, "skybox", skyboxImage);
 	}
 
 	void SceneWindow::Cleanup() {}

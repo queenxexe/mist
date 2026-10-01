@@ -1,12 +1,15 @@
 #pragma once
-#include "data/Image.hpp"
+#include <string>
 #include <vulkan/vulkan.h>
+#include "data/Image.hpp"
 
 namespace mist {
     class VulkanImage : public Image {
     public:
         VulkanImage(const std::string& imagePath, const TextureFormat format, const TilingMode tiling);
-        ~VulkanImage();
+        virtual ~VulkanImage() override;
+        
+        virtual void Cleanup() override;
 
         VulkanImage(VulkanImage&& other) noexcept;
         VulkanImage& operator=(VulkanImage&& other) noexcept;

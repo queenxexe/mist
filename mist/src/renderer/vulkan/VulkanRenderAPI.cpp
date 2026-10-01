@@ -1,10 +1,10 @@
 #include "VulkanRenderAPI.hpp"
 #include "renderer/vulkan/VulkanContext.hpp"
-#include "data/RenderTypes.hpp"
-#include "Debug.hpp"
+#include "renderer/RenderTypes.hpp"
 #include "Application.hpp"
 #include "renderer/vulkan/VulkanHelper.hpp"
 #include "renderer/vulkan/VulkanMaterial.hpp"
+#include "ResourceManagerInternal.hpp"
 
 namespace mist {
 	void VulkanRenderAPI::Initialize() {
@@ -43,7 +43,7 @@ namespace mist {
 		lightData.u_LightDir = light.GetTransform().Forward();
 		lightData.u_LightColor = light.lightColor;
 
-		auto& materials = Application::Get().GetMaterialLibrary()->GetAllMaterials();
+		const auto& materials = ResourceManagerInternal::GetAllMaterials(Application::Get().GetResourceManager());
 		for (const auto&[id, material] : materials) {
 			material->SetUniformData(renderDataID, "DirectionalLightData", sizeof(lightData), &lightData);
 		}
@@ -54,7 +54,7 @@ namespace mist {
 		CameraData camData;
 		camData.u_ViewProjectionMatrix = VulkanHelper::GetFlippedViewProjectionMatrix(camera);
 		
-		auto& materials = Application::Get().GetMaterialLibrary()->GetAllMaterials();
+		const auto& materials = ResourceManagerInternal::GetAllMaterials(Application::Get().GetResourceManager());
 		for (const auto&[id, material] : materials) {
 			material->SetUniformData(renderDataID, "CameraData", sizeof(camData), &camData);
 		}
@@ -62,7 +62,7 @@ namespace mist {
 
 	void VulkanRenderAPI::BindMeshRenderer(const uint8_t renderDataID, const MeshRenderer& meshRenderer) {
 		VulkanContext& context = VulkanContext::GetContext();
-		Ref<VulkanRenderData> data = context.GetRenderData(renderDataID);
+		std::shared_ptr<VulkanRenderData> data = context.GetRenderData(renderDataID);
 
 		meshRenderer.vBuffer->Bind();
 		meshRenderer.iBuffer->Bind();

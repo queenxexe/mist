@@ -4,18 +4,19 @@
 #include "renderer/Material.hpp"
 #include "renderer/vulkan/VulkanShader.hpp"
 #include "renderer/vulkan/VulkanBuffer.hpp"
+#include "data/RefTypes.hpp"
 
 namespace mist {
 	struct VulkanMaterialRenderData {
 		std::vector<VkDescriptorSet> descriptorSets;
 		std::unordered_map<std::string, UniformBuffer> uniformBuffers;
-		std::unordered_map<std::string, Ref<Image>> textures;
+		std::unordered_map<std::string, std::shared_ptr<Image>> textures;
 		bool descriptorDirty = true;
 	};
 
 	class VulkanMaterial : public Material {
 	public:
-		VulkanMaterial(const uint32_t materialID, const Ref<Shader>& shader);
+		VulkanMaterial(const ShaderRef& shader);
 		virtual ~VulkanMaterial() override;
 	
 		VulkanMaterial(const VulkanMaterial& other) = delete;
@@ -25,7 +26,7 @@ namespace mist {
 
 		virtual void Bind(const uint8_t renderDataID) override;
 
-		virtual void SetTexture(const uint8_t renderDataID, const std::string& name, const Ref<Image>& texture) override;
+		virtual void SetTexture(const uint8_t renderDataID, const std::string& name, const std::shared_ptr<Image>& texture) override;
 		virtual void SetUniformData(const uint8_t renderDataID, const std::string& name, size_t size, const void* value) override;
 		virtual void SetPushConstant(const uint8_t renderDataID, const std::string& name, size_t size, const void* value) override;
 	private:

@@ -1,13 +1,11 @@
 #pragma once
 #include <Math.hpp>
-#include <Core.hpp>
 #include <renderer/Framebuffer.hpp>
 #include <renderer/Buffer.hpp>
-#include <renderer/Shader.hpp>
-#include <renderer/Material.hpp>
 #include <components/Camera.hpp>
 #include <imgui/ImguiLayer.hpp>
 #include <entt/entt.hpp>
+#include <data/RefTypes.hpp>
 
 namespace V {
 	class Game {
@@ -21,15 +19,15 @@ namespace V {
 		void Cleanup();
 		void Resize(const uint32_t& x, const uint32_t& y);
 
-		inline const mist::Ref<mist::RenderData>& GetRenderData() { return renderData; }
+		inline const std::shared_ptr<mist::RenderData>& GetRenderData() { return renderData; }
 		inline const ImTextureID GetFramebufferID() const { return framebufferID; }
 	private:
 		mist::ImguiLayer* parent;
-		mist::Ref<mist::RenderData> renderData;
+		std::shared_ptr<mist::RenderData> renderData;
 		ImTextureID framebufferID;
 		entt::entity cameraEntity;
-		mist::Ref<mist::Image> skyboxImage;
-		mist::Ref<mist::Shader> skyboxShader;
-		mist::Ref<mist::Material> skyboxMat;
+		mist::ImageRef skyboxImage;
+		mist::ShaderRef skyboxShader;
+		mist::MaterialRef skyboxMat;
 	};
 }

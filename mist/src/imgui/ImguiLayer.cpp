@@ -49,7 +49,7 @@ namespace mist {
 		renderData = mist::RenderData::Create(properties);
 
 		if (Application::Get().GetRenderAPI()->GetAPI() == RenderAPI::Vulkan) {
-			Ref<VulkanRenderData> data = std::dynamic_pointer_cast<VulkanRenderData>(renderData);
+			std::shared_ptr<VulkanRenderData> data = std::dynamic_pointer_cast<VulkanRenderData>(renderData);
 
 			ImGui_ImplSDL3_InitForVulkan(Application::Get().GetWindow()->GetNativeWindow());
 			
@@ -129,9 +129,9 @@ namespace mist {
 		}
 	}
 
-	ImTextureID ImguiLayer::AddTexture(const Ref<RenderData>& renderData) {
+	ImTextureID ImguiLayer::AddTexture(const std::shared_ptr<RenderData>& renderData) {
 		if (Application::Get().GetRenderAPI()->GetAPI() == RenderAPI::Vulkan) {
-			Ref<VulkanRenderData> data = std::dynamic_pointer_cast<VulkanRenderData>(renderData);
+			std::shared_ptr<VulkanRenderData> data = std::dynamic_pointer_cast<VulkanRenderData>(renderData);
 			VkDescriptorSet descriptorSet = ImGui_ImplVulkan_AddTexture(data->GetFirstFramebufferImageView(), data->GetFirstFramebufferImageLayout());
 			return reinterpret_cast<ImTextureID>(descriptorSet);
 		}
@@ -139,9 +139,9 @@ namespace mist {
 		return ImTextureID_Invalid;
 	}
 
-	void ImguiLayer::UpdateTexture(ImTextureID& id, const Ref<RenderData>& renderData) {
+	void ImguiLayer::UpdateTexture(ImTextureID& id, const std::shared_ptr<RenderData>& renderData) {
 		if (Application::Get().GetRenderAPI()->GetAPI() == RenderAPI::Vulkan) {
-			Ref<VulkanRenderData> data = std::dynamic_pointer_cast<VulkanRenderData>(renderData);
+			std::shared_ptr<VulkanRenderData> data = std::dynamic_pointer_cast<VulkanRenderData>(renderData);
 			VkDescriptorSet oldDescriptorSet = (VkDescriptorSet)(uintptr_t)id;
 			ImGui_ImplVulkan_RemoveTexture(oldDescriptorSet);
 			VkDescriptorSet newDescriptorSet = ImGui_ImplVulkan_AddTexture(data->GetFirstFramebufferImageView(), data->GetFirstFramebufferImageLayout());

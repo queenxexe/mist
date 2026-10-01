@@ -1,10 +1,7 @@
-#include "data/Image.hpp"
-#include "Debug.hpp"
-#include "Application.hpp"
-#include "renderer/vulkan/VulkanImage.hpp"
+#include "renderer/RenderTypes.hpp"
 
 namespace mist {
-	 const char* TextureFormatToString(const TextureFormat format) {
+    const char* TextureFormatToString(const TextureFormat format) {
 		switch (format) {
 			case TextureFormat::None:				return "None";
 			case TextureFormat::RGBA8:				return "RGBA8";
@@ -63,18 +60,5 @@ namespace mist {
 		}
 
 		return "Missing format";
-	}
-
-	Ref<Image> Image::Create(const std::string& imagePath, const TextureFormat desiredFormat, const TilingMode tiling) {
-		switch (Application::Get().GetRenderAPI()->GetAPI()) {
-		case RenderAPI::API::Vulkan:
-			return CreateRef<VulkanImage>(imagePath, desiredFormat, tiling);
-		case RenderAPI::API::None:
-			MIST_ASSERT(false, "None render API not supported");
-			return nullptr;
-		default:
-			MIST_ASSERT(false, "Unknown render API");
-			return nullptr;
-		}
 	}
 }

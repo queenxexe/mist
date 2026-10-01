@@ -4,26 +4,26 @@
 #include "renderer/vulkan/VulkanBuffer.hpp"
 
 namespace mist {
-	Ref<VertexBuffer> VertexBuffer::Create(const std::vector<Vertex>& vertices) {
+	std::shared_ptr<VertexBuffer> VertexBuffer::Create(const std::vector<Vertex>& vertices) {
 		switch (Application::Get().GetRenderAPI()->GetAPI()) {
 		case RenderAPI::API::None:
 			MIST_ASSERT(false, "None render API not supported");
 			return nullptr;
 		case RenderAPI::API::Vulkan:
-			return CreateRef<VulkanVertexBuffer>(vertices);
+			return std::make_shared<VulkanVertexBuffer>(vertices);
 		default:
 			MIST_ASSERT(false, "Unknown renderer API");
 			return nullptr;
 		}
 	}
 
-	Ref<IndexBuffer> IndexBuffer::Create(const std::vector<uint32_t>& indices) {
+	std::shared_ptr<IndexBuffer> IndexBuffer::Create(const std::vector<uint32_t>& indices) {
 		switch (Application::Get().GetRenderAPI()->GetAPI()) {
 		case RenderAPI::API::None:
 			MIST_ASSERT(false, "None render API not supported");
 			return nullptr;
 		case RenderAPI::API::Vulkan:
-			return CreateRef<VulkanIndexBuffer>(indices);
+			return std::make_shared<VulkanIndexBuffer>(indices);
 		default:
 			MIST_ASSERT(false, "Unknown renderer API");
 			return nullptr;

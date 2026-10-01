@@ -21,13 +21,13 @@ namespace mist {
 
 		void Begin();
 		void End();
-		ImTextureID AddTexture(const Ref<RenderData>& renderData);
-		void UpdateTexture(ImTextureID& id, const Ref<RenderData>& renderData);
+		ImTextureID AddTexture(const std::shared_ptr<RenderData>& renderData);
+		void UpdateTexture(ImTextureID& id, const std::shared_ptr<RenderData>& renderData);
 		void RemoveTexture(const ImTextureID& id);
 	protected:
 		void SetDarkThemeColors();
 
 		ImguiLayerConfig config;
-		Ref<RenderData> renderData;
+		std::shared_ptr<RenderData> renderData;
 	};
 }

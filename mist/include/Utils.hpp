@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include "Core.hpp"
 
 namespace mist {
 	class Utils {

@@ -1,10 +1,11 @@
 #pragma once
+#include <memory>
 #include <vector>
 #include <cstdint>
-#include "Core.hpp"
-#include "data/Image.hpp"
+#include <stdint.h>
+#include "renderer/RenderTypes.hpp"
 
-#define INVALID_RENDER_DATA_ID 255 // Max of a uint8_t
+#define INVALID_RENDER_DATA_ID UINT8_MAX
 
 namespace mist {
 	enum class FramebufferType {
@@ -36,7 +37,7 @@ namespace mist {
 		inline const FramebufferProperties& GetProperties() const { return framebufferProperties; }
 		inline const uint8_t GetRenderDataID() { return ID; }
 
-		static Ref<RenderData> Create(FramebufferProperties& properties);
+		static std::shared_ptr<RenderData> Create(FramebufferProperties& properties);
 	protected:
 		uint8_t ID;
 		FramebufferProperties framebufferProperties;

@@ -2,7 +2,7 @@
 #include "Application.hpp"
 
 namespace mist {
-	MeshRenderer::MeshRenderer(Transform& transform, mist::Ref<Mesh> mesh) : transformComponent(transform), mesh(mesh) {
+	MeshRenderer::MeshRenderer(Transform& transform, std::shared_ptr<Mesh> mesh) : transformComponent(transform), mesh(mesh) {
 		Apply();
 	}
 

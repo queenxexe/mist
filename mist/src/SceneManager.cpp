@@ -1,8 +1,9 @@
 #include "SceneManager.hpp"
 #include "components/Transform.hpp"
 #include "components/DirectionalLight.hpp"
-#include <Application.hpp>
-#include <Debug.hpp>
+#include "Application.hpp"
+#include "Debug.hpp"
+#include "ResourceManagerInternal.hpp"
 
 namespace mist {
 	const entt::entity SceneManager::CreateEntity() {
@@ -14,10 +15,11 @@ namespace mist {
 		loadedScenes[activeScene].destroy(entity);
 	}
 
-	void SceneManager::SubmitSkybox(const uint8_t renderDataID, const int32_t sceneIndex, const Ref<Material>& skyboxMaterial) {
-		ShaderLibrary* shaderLib = Application::Get().GetShaderLibrary();
-		skyboxMaterial->GetShader()->Bind(renderDataID);
-		skyboxMaterial->Bind(renderDataID);
+	void SceneManager::SubmitSkybox(const uint8_t renderDataID, const int32_t sceneIndex, const MaterialRef& skyboxMaterial) {
+		ResourceManager* rm = Application::Get().GetResourceManager();
+		ShaderRef shader = ResourceManagerInternal::GetMaterial(rm, skyboxMaterial.id)->GetShaderRef();
+		ResourceManagerInternal::Bind(rm, renderDataID, shader);
+		ResourceManagerInternal::Bind(rm, renderDataID, skyboxMaterial);
 		Application::Get().GetRenderAPI()->DrawFullscreen();
 	}
 
@@ -28,19 +30,20 @@ namespace mist {
 			break;	// Only pass the first directional light as there should only be 1
 		}
 		
-		MaterialLibrary* materialLib = Application::Get().GetMaterialLibrary();
+		ResourceManager* rm = Application::Get().GetResourceManager();
 		auto view = loadedScenes[sceneIndex].view<MeshRenderer, MaterialRef>();
 		
 		// Binding and unbinding a shader pipeline after each object is terrible but will do for testing sake
 		// ideally we bind a shader then render everything with that shader before moving on
 		// unless there is better methods im unaware of
-		std::string currentShaderName = "";
-		view.each([renderDataID, materialLib, &currentShaderName](MeshRenderer& renderer, MaterialRef& materialRef) {
-			Ref<Material> material = materialLib->Get(materialRef.materialID);
-			std::string shaderName = material->GetShader()->GetName();
-			if (shaderName != currentShaderName) {
-				material->GetShader()->Bind(renderDataID);
-				currentShaderName = shaderName;
+		ResourceID currentShaderID = INVALID_RESOURCE_ID;
+		view.each([renderDataID, rm, &currentShaderID](MeshRenderer& renderer, MaterialRef& materialRef) {
+			std::shared_ptr<Material> material = ResourceManagerInternal::GetMaterial(rm, materialRef.id);
+			ShaderRef shader = material->GetShaderRef();
+			
+			if (shader.id != currentShaderID) {
+				ResourceManagerInternal::Bind(rm, renderDataID, shader);
+				currentShaderID = shader.id;
 			}
 			
 			material->Bind(renderDataID);

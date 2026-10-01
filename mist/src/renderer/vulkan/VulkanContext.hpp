@@ -46,8 +46,8 @@ namespace mist {
 		void BeginRenderPass(const uint8_t renderDataID);
 		void EndRenderPass();
 #
-		Ref<VulkanRenderData> CreateNewRenderData();
-		Ref<VulkanRenderData> GetRenderData(const uint8_t renderDataId) { return renderDatas[renderDataId]; }
+		std::shared_ptr<VulkanRenderData> CreateNewRenderData();
+		std::shared_ptr<VulkanRenderData> GetRenderData(const uint8_t renderDataId) { return renderDatas[renderDataId]; }
 		inline const size_t GetRenderDataCount() const { return renderDatas.size(); }
 
 		inline const VkInstance GetInstance() const { return instance; }
@@ -112,6 +112,6 @@ namespace mist {
 		VkFence tempCommandBufferFence = VK_NULL_HANDLE;
 
 		uint8_t renderDataCounter;
-		std::unordered_map<uint8_t, Ref<VulkanRenderData>> renderDatas;
+		std::unordered_map<uint8_t, std::shared_ptr<VulkanRenderData>> renderDatas;
 	};
 }

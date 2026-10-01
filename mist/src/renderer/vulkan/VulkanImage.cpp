@@ -17,11 +17,7 @@ namespace mist {
 	}
 
 	VulkanImage::~VulkanImage() {
-		VulkanContext& context = VulkanContext::GetContext();
-		vkDestroyImage(context.GetDevice(), image, context.GetAllocationCallbacks());
-		vkDestroyImageView(context.GetDevice(), view, context.GetAllocationCallbacks());
-		vkDestroySampler(context.GetDevice(), sampler, context.GetAllocationCallbacks());
-		stbi_image_free(data.pixels);
+		Cleanup();
 	}
 
 	void VulkanImage::InitImage() {
@@ -151,5 +147,33 @@ namespace mist {
 		TransitionLayout(cmd, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		context.EndSingleTimeCommands();
 		staging.Clear();
+	}
+
+	void VulkanImage::Cleanup() {
+		VulkanContext& context = VulkanContext::GetContext();
+		if (sampler != VK_NULL_HANDLE) {
+			vkDestroySampler(context.GetDevice(), sampler, context.GetAllocationCallbacks());
+			sampler = VK_NULL_HANDLE;
+		}
+
+		if (view != VK_NULL_HANDLE) {
+			vkDestroyImageView(context.GetDevice(), view, context.GetAllocationCallbacks());
+			view = VK_NULL_HANDLE;
+		}
+
+		if (image != VK_NULL_HANDLE) {
+			vkDestroyImage(context.GetDevice(), image, context.GetAllocationCallbacks());
+			image = VK_NULL_HANDLE;
+		}
+
+		if (memory != VK_NULL_HANDLE) {
+			vkFreeMemory(context.GetDevice(), memory, context.GetAllocationCallbacks());
+			memory = VK_NULL_HANDLE;
+		}
+
+		if (data.pixels != nullptr) {
+			stbi_image_free(data.pixels);
+			data.pixels = nullptr;
+		}
 	}
 }

@@ -304,15 +304,9 @@ namespace mist {
 	}
 
 	void VulkanContext::Cleanup() {
-		for (auto& [id, material] : Application::Get().GetMaterialLibrary()->GetAllMaterials()) {
-			material->Cleanup();
-		}
+		Application::Get().GetResourceManager()->Cleanup();
 
-		for (auto& [name, shader] : Application::Get().GetShaderLibrary()->GetAllShaders()) {
-			shader->Cleanup();
-		}
-
-		for (std::pair<const uint8_t, Ref<VulkanRenderData>>& data : renderDatas)
+		for (std::pair<const uint8_t, std::shared_ptr<VulkanRenderData>>& data : renderDatas)
 			data.second->Cleanup();
 
 		for (VkImageView& swapchainImageView : swapchainImageViews)
@@ -473,7 +467,7 @@ namespace mist {
 		MIST_INFO("Recreating Swapchain");
 		vkDeviceWaitIdle(VulkanContext::GetContext().GetDevice());
 
-		Ref<VulkanRenderData>& swapchainRenderData = renderDatas[swapchainRenderDataID];
+		std::shared_ptr<VulkanRenderData>& swapchainRenderData = renderDatas[swapchainRenderDataID];
 		FramebufferProperties newProp = swapchainRenderData->GetProperties();
 		newProp.width = width;
 		newProp.height = height;
@@ -487,7 +481,7 @@ namespace mist {
 		if (swapchainRenderDataID == INVALID_RENDER_DATA_ID)
 			return;
 
-		Ref<VulkanRenderData>& swapchainRenderData = renderDatas[swapchainRenderDataID];
+		std::shared_ptr<VulkanRenderData>& swapchainRenderData = renderDatas[swapchainRenderDataID];
 		FramebufferProperties props = swapchainRenderData->GetProperties();
 		RecreateSwapchain(props.width, props.height);
 	}
@@ -571,7 +565,7 @@ namespace mist {
 	}
 
 	void VulkanContext::BeginRenderPass(const uint8_t renderDataID) {
-		Ref<VulkanRenderData> data = renderDatas[renderDataID]; 
+		std::shared_ptr<VulkanRenderData> data = renderDatas[renderDataID]; 
 		uint32_t index = imageIndex;
 		if (data->GetProperties().type != FramebufferType::SWAPCHAIN)
 			index = 0;
@@ -609,9 +603,9 @@ namespace mist {
 		vkCmdEndRenderPass(commandBuffers[currentFrame]);
 	}
 
-	Ref<VulkanRenderData> VulkanContext::CreateNewRenderData() {
+	std::shared_ptr<VulkanRenderData> VulkanContext::CreateNewRenderData() {
 		uint8_t id = GetNewRenderDataID();
-		renderDatas.emplace(id, CreateRef<VulkanRenderData>(id));
+		renderDatas.emplace(id, std::make_shared<VulkanRenderData>(id));
 		return renderDatas[id];
 	}
 
