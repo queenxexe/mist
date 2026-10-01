@@ -9,6 +9,9 @@
 # Linux VisualStudioCode
 .cache/*
 
-# Ingore builds folder
+# Ignore builds folder
 build/*
 out/*
+
+# Ignore VCPKG installed
+vcpkg_installed/*
