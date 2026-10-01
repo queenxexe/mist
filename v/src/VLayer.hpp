@@ -17,7 +17,10 @@ namespace V {
 		virtual void OnRender() override;
 	private:
 		void OnImguiRender();
+		void PostRender();
 
+		bool resizeRequested = false;
+		glm::ivec2 windowSize = { 0, 0 };
 		Game game;
 	};
 }

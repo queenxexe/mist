@@ -16,13 +16,17 @@ namespace V {
 
 		void Initialize();
 		void OnUpdate();
-		void OnImguiRender();
 		void OnRender();
-		void PostRender();
+		void OnImguiRender();
 		void Cleanup();
+		void Resize(const uint32_t& x, const uint32_t& y);
+
+		inline const mist::Ref<mist::RenderData>& GetRenderData() { return renderData; }
+		inline const ImTextureID GetFramebufferID() const { return framebufferID; }
 	private:
 		mist::ImguiLayer* parent;
 		mist::Ref<mist::RenderData> renderData;
+		ImTextureID framebufferID;
 		entt::entity cameraEntity;
 		mist::Ref<mist::Image> skyboxImage;
 		mist::Ref<mist::Shader> skyboxShader;
