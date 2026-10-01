@@ -30,6 +30,7 @@ namespace mist {
 		virtual void BindMeshRenderer(const uint8_t renderDataID, const MeshRenderer& meshRenderer) = 0;
 		virtual void Draw(uint32_t indexCount) = 0;
 		virtual void DrawFullscreen() = 0;
+		virtual void Resize(const uint32_t width, const uint32_t height) = 0;
 
 		virtual API GetAPI() = 0;
 		

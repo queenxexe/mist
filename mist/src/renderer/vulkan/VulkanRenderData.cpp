@@ -116,11 +116,16 @@ namespace mist {
 	void FramebufferAttachment::Cleanup() {
 		VulkanContext& context = VulkanContext::GetContext();
 		
-		if (view != VK_NULL_HANDLE)
+		if (view != VK_NULL_HANDLE) {
 			vkDestroyImageView(context.GetDevice(), view, context.GetAllocationCallbacks());
-		
-		if (image != VK_NULL_HANDLE)
+			view = VK_NULL_HANDLE;
+		}
+
+		if (image != VK_NULL_HANDLE) {
 			vmaDestroyImage(context.GetAllocator(), image, imageAlloc);
+			image = VK_NULL_HANDLE;
+			imageAlloc = VK_NULL_HANDLE;
+		}
 	}
 	
 	VulkanRenderData::VulkanRenderData(const uint8_t ID) : RenderData(ID) {}
@@ -130,6 +135,7 @@ namespace mist {
 		vkDeviceWaitIdle(context.GetDevice());
 		framebufferProperties.width = width;
 		framebufferProperties.height = height;
+		Reset();	// While the swapchain recreation will reset this. This is still needed for SINGLE render datas
 		CreateRenderData(framebufferProperties);
 	}
 
@@ -139,16 +145,25 @@ namespace mist {
 		imguiContext.Cleanup();
 		vda.Cleanup();
 		pipeline.Cleanup();
+		Reset();
+
+		if (renderPass != VK_NULL_HANDLE) {
+			vkDestroyRenderPass(context.GetDevice(), renderPass, context.GetAllocationCallbacks());
+			renderPass = VK_NULL_HANDLE;
+		}
+	}
+
+	void VulkanRenderData::Reset() {
+		VulkanContext& context = VulkanContext::GetContext();
 
 		for (VkFramebuffer& framebuffer : framebuffers)
 			vkDestroyFramebuffer(context.GetDevice(), framebuffer, context.GetAllocationCallbacks());
+		framebuffers.clear();
 
 		for (std::vector<FramebufferAttachment>& attachments : framebufferAttachments)
 			for (FramebufferAttachment& attachment : attachments)
 				attachment.Cleanup();
-
-		if (renderPass != VK_NULL_HANDLE)
-			vkDestroyRenderPass(context.GetDevice(), renderPass, context.GetAllocationCallbacks());
+		framebufferAttachments.clear();
 	}
 
 	VkImageLayout VulkanRenderData::GetFirstFramebufferImageLayout() {

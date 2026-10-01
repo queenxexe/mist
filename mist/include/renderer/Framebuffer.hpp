@@ -4,6 +4,8 @@
 #include "Core.hpp"
 #include "data/Image.hpp"
 
+#define INVALID_RENDER_DATA_ID 255 // Max of a uint8_t
+
 namespace mist {
 	enum class FramebufferType {
 		SWAPCHAIN,	// Will generate a double or triple buffered framebuffers with the swapchain images
@@ -22,11 +24,6 @@ namespace mist {
 		uint32_t width = 1, height = 1;
 		std::vector<FramebufferTextureProperties> attachments;
 		uint32_t samples = 1;
-	};
-
-	struct SwapchainProperties {
-		uint32_t width = 1, height = 1;
-		TextureFormat colorFormat;
 	};
 
 	class RenderData {

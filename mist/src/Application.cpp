@@ -46,14 +46,14 @@ namespace mist {
 			SDL_Event event;
 			while (SDL_PollEvent (&event)) {
 				switch (event.type) {
-				//case SDL_EVENT_WINDOW_RESIZED:
-				//{
-				//	uint32_t newWidth = event.window.data1;
-				//	uint32_t newHeight = event.window.data2;
-				//	if (newWidth > 0 && newHeight > 0 && (window->GetWidth() != newWidth || window->GetHeight() != newHeight))
-				//		renderAPI->SetViewport(newWidth, newHeight);
-				//	break;
-				//}
+				case SDL_EVENT_WINDOW_RESIZED:
+				{
+					uint32_t newWidth = event.window.data1;
+					uint32_t newHeight = event.window.data2;
+					if (newWidth > 0 && newHeight > 0)
+						renderAPI->Resize(newWidth, newHeight);
+					break;
+				}
 				case SDL_EVENT_QUIT:
 					Quit();
 					break;

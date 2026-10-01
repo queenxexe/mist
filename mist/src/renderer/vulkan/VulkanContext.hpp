@@ -38,13 +38,14 @@ namespace mist {
 		void BeginSingleTimeCommands();
 		void EndSingleTimeCommands();
 		
-		void CreateSwapchain(const SwapchainProperties& properties);
+		void CreateSwapchain(const uint8_t renderDataID, const FramebufferProperties& properties);
+		void RecreateSwapchain(const uint32_t width, const uint32_t height);
 		void RecreateSwapchain();
 		void BeginFrame();
 		void EndFrame();
 		void BeginRenderPass(const uint8_t renderDataID);
 		void EndRenderPass();
-
+#
 		Ref<VulkanRenderData> CreateNewRenderData();
 		Ref<VulkanRenderData> GetRenderData(const uint8_t renderDataId) { return renderDatas[renderDataId]; }
 		inline const size_t GetRenderDataCount() const { return renderDatas.size(); }
@@ -99,7 +100,7 @@ namespace mist {
 		VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
         VmaAllocator allocator = nullptr;
 		
-		SwapchainProperties swapchainProperties;
+		uint8_t swapchainRenderDataID = INVALID_RENDER_DATA_ID;
 		VkSwapchainKHR swapchain = VK_NULL_HANDLE;
 		std::vector<VkImageView> swapchainImageViews;
 		std::vector<VkSemaphore> submitSemaphores;

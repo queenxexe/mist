@@ -82,4 +82,8 @@ namespace mist {
 		VulkanContext& context = VulkanContext::GetContext();
 		vkDeviceWaitIdle(context.GetDevice());
 	}
+
+	void VulkanRenderAPI::Resize(const uint32_t width, const uint32_t height) {
+		VulkanContext::GetContext().RecreateSwapchain(width, height);
+	}
 }

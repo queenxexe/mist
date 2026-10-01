@@ -31,19 +31,18 @@ namespace mist {
 		case RenderAPI::API::Vulkan:
 		{
 			ValidateFramebufferProperties(properties);
-			
 			VulkanContext& context = VulkanContext::GetContext();
+			Ref<VulkanRenderData> data = context.CreateNewRenderData();
+			
 			if (properties.type == FramebufferType::SWAPCHAIN) {
 				MIST_ASSERT(VulkanHelper::IsColorFormat(properties.attachments[0].textureFormat), "First framebuffer attachment is not a color format, cant create swapchain");
-				SwapchainProperties swapchainProperties{};
-				swapchainProperties.colorFormat = properties.attachments[0].textureFormat;
-				swapchainProperties.width = properties.width;
-				swapchainProperties.height = properties.height;
-				context.CreateSwapchain(swapchainProperties);
+				context.CreateSwapchain(data->GetRenderDataID(), properties);
 			}
 
-			Ref<VulkanRenderData> data = context.CreateNewRenderData();
 			data->CreateRenderData(properties);
+			// Since window may have a different initial size on load this makes sure the window is the size that was requested
+			Application::Get().GetWindow()->SetSize(properties.width, properties.height);
+
 			return std::static_pointer_cast<RenderData>(data);
 		}
 		case RenderAPI::API::None:

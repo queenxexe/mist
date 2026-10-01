@@ -111,10 +111,8 @@ namespace mist {
 
 	void ImguiLayer::End() {
 		ImGuiIO& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2(
-			(float)Application::Get().GetWindow()->GetWidth(), 
-			(float)Application::Get().GetWindow()->GetHeight()
-		);
+		glm::ivec2 size = Application::Get().GetWindow()->GetSize();
+		io.DisplaySize = ImVec2(size.x, size.y);
 
 		ImGui::Render();
 
@@ -154,12 +152,6 @@ namespace mist {
 	void ImguiLayer::RemoveTexture(const ImTextureID& id) {
 		if (Application::Get().GetRenderAPI()->GetAPI() == RenderAPI::Vulkan) {
 			ImGui_ImplVulkan_RemoveTexture((VkDescriptorSet)(uintptr_t)id);
-		}
-	}
-
-	void ImguiLayer::ImGuiImage(const ImTextureRef& texture, const ImVec2& imageSize, const ImVec2& uv0, const ImVec2& uv1) {
-		if (Application::Get().GetRenderAPI()->GetAPI() == RenderAPI::Vulkan) {
-			ImGui::Image(texture, imageSize, uv0, uv1);
 		}
 	}
 

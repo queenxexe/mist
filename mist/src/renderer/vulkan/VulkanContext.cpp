@@ -65,12 +65,12 @@ namespace mist {
 		return formats;
 	}
 
-	VkSurfaceFormatKHR ChooseSwapchainFormat(const VkPhysicalDevice phyiscalDevice, const VkSurfaceKHR surface, const SwapchainProperties& properties) {
-		MIST_ASSERT(VulkanHelper::IsColorFormat(properties.colorFormat), "Trying to create swapchain with a non color format.");
+	VkSurfaceFormatKHR ChooseSwapchainFormat(const VkPhysicalDevice phyiscalDevice, const VkSurfaceKHR surface, const TextureFormat& colorFormat) {
+		MIST_ASSERT(VulkanHelper::IsColorFormat(colorFormat), "Trying to create swapchain with a non color format.");
 		std::vector<VkSurfaceFormatKHR> availableFormats = QuerySwapchainFormats(phyiscalDevice, surface);
 
 		VkSurfaceFormatKHR preferedFormat;
-		preferedFormat.format = VulkanHelper::GetVkFormat(properties.colorFormat);
+		preferedFormat.format = VulkanHelper::GetVkFormat(colorFormat);
 		preferedFormat.colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 		for (const VkSurfaceFormatKHR& format : availableFormats) {
 			if (format.format == preferedFormat.format && format.colorSpace == preferedFormat.colorSpace) {
@@ -96,10 +96,10 @@ namespace mist {
 		return availablePresentModes[0];
 	}
 
-	VkExtent2D ChooseSwapchainExtent(const VkSurfaceCapabilitiesKHR capabilities, const SwapchainProperties& properties) {
+	VkExtent2D ChooseSwapchainExtent(const VkSurfaceCapabilitiesKHR capabilities, const uint32_t width, const uint32_t height) {
 		return {
-			std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, properties.width)),
-			std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, properties.height))
+			std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, width)),
+			std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, height))
 		};
 	}
 
@@ -383,8 +383,9 @@ namespace mist {
 		CheckVkResult(vkCreateFence(device, &tempCommandBufferFenceInfo, allocationCallbacks, &tempCommandBufferFence));
 	}
 
-	void VulkanContext::CreateSwapchain(const SwapchainProperties& properties) {
-		VkSurfaceFormatKHR selectedFormat = ChooseSwapchainFormat(physicalDevice, surface, properties);
+	void VulkanContext::CreateSwapchain(const uint8_t renderDataID, const FramebufferProperties& properties) {
+		swapchainRenderDataID = renderDataID;
+		VkSurfaceFormatKHR selectedFormat = ChooseSwapchainFormat(physicalDevice, surface, properties.attachments[0].textureFormat);
 		
 		VkSurfaceCapabilitiesKHR capabilities;
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &capabilities);
@@ -405,7 +406,7 @@ namespace mist {
 
 		VkSwapchainKHR oldSwapchain = swapchain;
 
-		VkExtent2D extent = ChooseSwapchainExtent(capabilities, properties);
+		VkExtent2D extent = ChooseSwapchainExtent(capabilities, properties.width, properties.height);
 
 		VkSwapchainCreateInfoKHR swapchainInfo {};
 		swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -465,10 +466,30 @@ namespace mist {
 		}
 	}
 
-	void VulkanContext::RecreateSwapchain() {
+	void VulkanContext::RecreateSwapchain(const uint32_t width, const uint32_t height) {
+		if (swapchainRenderDataID == INVALID_RENDER_DATA_ID)
+			return;
+
 		MIST_INFO("Recreating Swapchain");
 		vkDeviceWaitIdle(VulkanContext::GetContext().GetDevice());
-		CreateSwapchain(swapchainProperties);
+
+		Ref<VulkanRenderData>& swapchainRenderData = renderDatas[swapchainRenderDataID];
+		FramebufferProperties newProp = swapchainRenderData->GetProperties();
+		newProp.width = width;
+		newProp.height = height;
+
+		swapchainRenderData->Reset();
+		CreateSwapchain(swapchainRenderDataID, newProp);
+		renderDatas[swapchainRenderDataID]->Resize(width, height);
+	}
+
+	void VulkanContext::RecreateSwapchain() {
+		if (swapchainRenderDataID == INVALID_RENDER_DATA_ID)
+			return;
+
+		Ref<VulkanRenderData>& swapchainRenderData = renderDatas[swapchainRenderDataID];
+		FramebufferProperties props = swapchainRenderData->GetProperties();
+		RecreateSwapchain(props.width, props.height);
 	}
 
 	void VulkanContext::BeginSingleTimeCommands() {

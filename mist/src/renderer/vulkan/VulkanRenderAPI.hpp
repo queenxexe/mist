@@ -18,7 +18,7 @@ namespace mist {
 		virtual void BindMeshRenderer(const uint8_t renderDataID, const MeshRenderer& meshRenderer) override;
 		virtual void Draw(uint32_t indexCount) override;
 		virtual void DrawFullscreen() override;
-
+		virtual void Resize(const uint32_t width, const uint32_t height) override;
 
 		virtual RenderAPI::API GetAPI() override { return RenderAPI::API::Vulkan; }
 	};

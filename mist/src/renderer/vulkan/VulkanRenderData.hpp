@@ -26,7 +26,8 @@ namespace mist {
 		virtual void Resize(const uint32_t width, const uint32_t height) override;
 
 		void CreateRenderData(FramebufferProperties& properties);
-		void Cleanup();
+		void Cleanup();	// This is for complete destruction
+		void Reset();	// This is for framebuffer recreation
 
 		inline VkImageView GetFirstFramebufferImageView() { return framebufferAttachments[0][0].view; }
 		VkImageLayout GetFirstFramebufferImageLayout();
