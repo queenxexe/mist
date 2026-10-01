@@ -1,13 +1,14 @@
 #pragma once
 #include <Math.hpp>
 #include <SDL3/SDL.h>
+#define INIT_WIDTH 720
+#define INIT_HEIGHT 480
 
 namespace mist {
 	struct WindowProperties {
 		const char* title;
-		uint32_t width, height;
 
-		WindowProperties(const char* _title = "Untitled Window", uint32_t width = 1280, uint32_t height = 720) : title(_title), width(width), height(height) {}
+		WindowProperties(const char* _title = "Untitled Window") : title(_title) {}
 	};
 
 	class Window {
@@ -18,8 +19,9 @@ namespace mist {
 		const uint32_t GetXPosition() const;
 		const uint32_t GetYPosition() const;
 
-		uint32_t GetWidth() const { return properties.width; }
-		uint32_t GetHeight() const { return properties.height; }
+		const glm::ivec2 GetSize() const; 
+		void SetSize(const glm::ivec2& size);
+		void SetSize(const uint32_t& x, const uint32_t& y);
 
 		inline SDL_Window* GetNativeWindow() const{ return window; }
 

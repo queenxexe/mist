@@ -23,4 +23,18 @@ namespace mist {
 
 	const uint32_t Window::GetXPosition() const { return (uint32_t)GetWindowPosition().x; };
 	const uint32_t Window::GetYPosition() const { return (uint32_t)GetWindowPosition().y; };
+
+	const glm::ivec2 Window::GetSize() const {
+		glm::ivec2 size{0,0};
+		SDL_GetWindowSize(window, &size.x, &size.y);
+		return size;
+	}
+
+	void Window::SetSize(const glm::ivec2& size) {
+		SetSize(size.x, size.y);
+	}
+
+	void Window::SetSize(const uint32_t& x, const uint32_t& y) {
+		SDL_SetWindowSize(window, x, y);
+	}
 }

@@ -16,8 +16,8 @@ namespace mist {
 
 		window = SDL_CreateWindow(
 			properties.title,
-			properties.width,
-			properties.height,
+			INIT_WIDTH,
+			INIT_HEIGHT,
 			flags
 		);
 	}
