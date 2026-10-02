@@ -23,6 +23,7 @@ namespace mist {
 		void PushLayer(Layer* layer);
 		void PopLayer(Layer* layer);
 
+		inline const float GetTime() const { return time; }
 		inline const float GetDeltaTime() const { return deltaTime; }
 		inline RenderAPI* GetRenderAPI() { return renderAPI; }
 		inline Window* GetWindow() { return window; }
@@ -36,6 +37,7 @@ namespace mist {
 		const char* appName = "Untitled";
 		bool running = true;
 		float deltaTime = 0;
+		float time = 0;
 		LayerStack layerStack;
 		ResourceManager resourceManager;
 		Window* window;

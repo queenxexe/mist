@@ -24,13 +24,16 @@ namespace mist {
 	}
 
 	void SceneManager::SubmitScene(const uint8_t renderDataID, const int32_t sceneIndex) {
+		Application& app = Application::Get();
+		app.GetRenderAPI()->UpdateFrameData(renderDataID, app.GetTime(), app.GetDeltaTime());
+
 		auto lightView = loadedScenes[sceneIndex].view<DirectionalLight>();
 		for (auto entity : lightView) {
-			Application::Get().GetRenderAPI()->UpdateDirectionalLight(renderDataID, loadedScenes[activeScene].get<DirectionalLight>(entity));
+			app.GetRenderAPI()->UpdateDirectionalLight(renderDataID, loadedScenes[activeScene].get<DirectionalLight>(entity));
 			break;	// Only pass the first directional light as there should only be 1
 		}
 		
-		ResourceManager* rm = Application::Get().GetResourceManager();
+		ResourceManager* rm = app.GetResourceManager();
 		auto view = loadedScenes[sceneIndex].view<MeshRenderer, MaterialRef>();
 		
 		// Binding and unbinding a shader pipeline after each object is terrible but will do for testing sake
@@ -54,11 +57,17 @@ namespace mist {
 		});
 	}
 
-	void SceneManager::UpdateSceneCamera(const Camera& camera, const uint8_t renderDataID) {
-		Application::Get().GetRenderAPI()->UpdateCamera(renderDataID, camera);
+	void SceneManager::UpdateSceneData(const uint8_t renderDataID, const Camera& camera) {
+		Application& app = Application::Get();
+		
+		app.GetRenderAPI()->UpdateFrameData(renderDataID, app.GetTime(), app.GetDeltaTime());
+		app.GetRenderAPI()->UpdateCamera(renderDataID, camera);
 	}
 
-	void SceneManager::UpdateSceneCamera(const uint8_t renderDataID) {
+	void SceneManager::UpdateSceneData(const uint8_t renderDataID) {
+		Application& app = Application::Get();
+		app.GetRenderAPI()->UpdateFrameData(renderDataID, app.GetTime(), app.GetDeltaTime());
+
 		auto camView = loadedScenes[activeScene].view<Camera>();
 		
 		Camera* cam;
@@ -70,7 +79,7 @@ namespace mist {
 		}
 
 		if (cam != nullptr) {
-			Application::Get().GetRenderAPI()->UpdateCamera(renderDataID, *cam);
+			app.GetRenderAPI()->UpdateCamera(renderDataID, *cam);
 			return;
 		}
 

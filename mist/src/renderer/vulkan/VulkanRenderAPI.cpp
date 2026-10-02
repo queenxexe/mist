@@ -38,10 +38,22 @@ namespace mist {
 	}
 
 	// Im aware this isnt great in the long run and all shaders should share one but this will do for now
+	void VulkanRenderAPI::UpdateFrameData(const uint8_t renderDataID, const float time, const float deltaTime) {
+		UBOFrameData frameData{};
+		frameData.Time = time;
+		frameData.DeltaTime = deltaTime;
+
+		const auto& materials = ResourceManagerInternal::GetAllMaterials(Application::Get().GetResourceManager());
+		for (const auto&[id, material] : materials) {
+			material->SetUniformData(renderDataID, "FrameData", sizeof(UBOFrameData), &frameData);
+		}
+	}
+
+	// Im aware this isnt great in the long run and all shaders should share one but this will do for now
 	void VulkanRenderAPI::UpdateDirectionalLight(const uint8_t renderDataID, const DirectionalLight& light) {
-		DirectionalLightData lightData;
-		lightData.u_LightDir = light.GetTransform().Forward();
-		lightData.u_LightColor = light.lightColor;
+		UBODirectionalLightData lightData;
+		lightData.LightDir = light.GetTransform().Forward();
+		lightData.LightColor = light.lightColor;
 
 		const auto& materials = ResourceManagerInternal::GetAllMaterials(Application::Get().GetResourceManager());
 		for (const auto&[id, material] : materials) {
@@ -51,9 +63,10 @@ namespace mist {
 	
 	// Im aware this isnt great in the long run and all shaders should share one but this will do for now
 	void VulkanRenderAPI::UpdateCamera(const uint8_t renderDataID, const Camera& camera) {
-		CameraData camData;
-		camData.u_ViewProjectionMatrix = VulkanHelper::GetFlippedViewProjectionMatrix(camera);
-		
+		UBOCameraData camData;
+		camData.ViewProjectionMatrix = VulkanHelper::GetFlippedViewProjectionMatrix(camera);
+		camData.CameraPosition = camera.GetTransform().position;
+
 		const auto& materials = ResourceManagerInternal::GetAllMaterials(Application::Get().GetResourceManager());
 		for (const auto&[id, material] : materials) {
 			material->SetUniformData(renderDataID, "CameraData", sizeof(camData), &camData);

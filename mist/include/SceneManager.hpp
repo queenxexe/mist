@@ -33,8 +33,8 @@ namespace mist {
 		inline void SubmitActiveSceneSkybox(const uint8_t renderDataID, const MaterialRef& skyboxMaterial) { SubmitSkybox(renderDataID, activeScene, skyboxMaterial); }
 		void SubmitSkybox(const uint8_t renderDataID, const int32_t sceneIndex, const MaterialRef& skyboxMaterial);
 
-		void UpdateSceneCamera(const Camera& camera, const uint8_t renderDataID);
-		void UpdateSceneCamera(const uint8_t renderDataID);
+		void UpdateSceneData(const uint8_t renderDataID, const Camera& camera);
+		void UpdateSceneData(const uint8_t renderDataID);
 
 		void LoadEmptyScene();
 		void LoadScene();

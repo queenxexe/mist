@@ -13,6 +13,7 @@ namespace mist {
 		virtual void EndFrame() override;
 		virtual void BeginRenderPass(const uint8_t renderDataID) override;
 		virtual void EndRenderPass() override;
+		virtual void UpdateFrameData(const uint8_t renderDataID, const float time, const float deltaTime) override;
 		virtual void UpdateDirectionalLight(const uint8_t renderDataID, const DirectionalLight& light) override;
 		virtual void UpdateCamera(const uint8_t renderDataID, const Camera& camera) override;
 		virtual void BindMeshRenderer(const uint8_t renderDataID, const MeshRenderer& meshRenderer) override;

@@ -77,6 +77,7 @@ namespace mist {
 			std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
 			deltaTime = std::min(std::chrono::duration<float>(currentTime - lastTime).count(), maxDeltaTime);
 			lastTime = currentTime;
+			time += deltaTime;
 		}
 	}
 

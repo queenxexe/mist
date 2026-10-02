@@ -86,16 +86,23 @@ namespace mist {
 
 	// These are default types used for reflection of shaders
 
-	struct CameraData {
-		glm::mat4 u_ViewProjectionMatrix;
+	struct UBOCameraData {
+		glm::mat4 ViewProjectionMatrix;
+		glm::vec3 CameraPosition;
+		float pad1;
 	};
 
 	// vec3 in shader is actually 16bytes rather than 12 which means padding is required
 	// or it will insert the red value of color into the direction and mess with both
-	struct DirectionalLightData {
-		glm::vec3 u_LightDir;
+	struct UBODirectionalLightData {
+		glm::vec3 LightDir;
 		float pad1;
-		glm::vec3 u_LightColor;
+		glm::vec3 LightColor;
 		float pad2;
+	};
+
+	struct UBOFrameData {
+		float Time;
+		float DeltaTime;
 	};
 }

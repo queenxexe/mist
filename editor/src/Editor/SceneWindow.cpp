@@ -160,7 +160,7 @@ namespace mistEditor {
 		renderAPI->BeginRenderPass(renderData->GetRenderDataID());
 		mist::SceneManager* sm = mist::Application::Get().GetSceneManager();
 		mist::Camera& cam = dynamic_cast<mist::Camera&>(sm->GetComponent<mist::SceneCamera>(sceneCameraEntity));
-		sm->UpdateSceneCamera(cam, renderData->GetRenderDataID());
+		sm->UpdateSceneData(renderData->GetRenderDataID(), cam);
 		sm->SubmitActiveSceneSkybox(renderData->GetRenderDataID(), skyboxMat);
 		sm->SubmitActiveScene(renderData->GetRenderDataID());
 		renderAPI->EndRenderPass();
