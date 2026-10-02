@@ -131,7 +131,7 @@ namespace mist {
 		return false;
 	}
 
-	static VkShaderStageFlagBits EShLanguageToVkStageFlags(EShLanguage stage) {
+	static VkShaderStageFlagBits EShLanguageToVkStageFlags(const EShLanguage& stage) {
 		switch (stage) {
 		case EShLangVertex:         return VK_SHADER_STAGE_VERTEX_BIT;
 		case EShLangTessControl:    return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
@@ -150,6 +150,28 @@ namespace mist {
 		default:
 			MIST_ASSERT(false, "Can not convert EShLanguage enum to Vulkan shader stage");
 			return VK_SHADER_STAGE_ALL;
+		}
+	}
+
+	static std::string GetStringFromEshLang(const EShLanguage& stage) {
+		switch (stage) {
+		case EShLangVertex:         return "VERTEX STAGE";
+		case EShLangTessControl:    return "TESSELATION CONTROL";
+		case EShLangTessEvaluation: return "TESSELATION EVAL";
+		case EShLangGeometry:       return "GEOMETRY STAGE";
+		case EShLangFragment:       return "FRAGMENT STAGE";
+		case EShLangCompute:        return "COMPUTE STAGE";
+		case EShLangRayGen:         return "RAY GEN";
+		case EShLangIntersect:      return "STAGE INTERSECT";
+		case EShLangAnyHit:         return "ANY HIT";
+		case EShLangClosestHit:     return "CLOSEST HIT";
+		case EShLangMiss:           return "MISS";
+		case EShLangCallable:       return "CALLABLE";
+		case EShLangTask:           return "TASK";
+		case EShLangMesh:           return "MESH";
+		default:
+			MIST_ASSERT(false, "Can not convert EShLanguage enum to String");
+			return "INVALID STAGE";
 		}
 	}
 
@@ -259,7 +281,7 @@ namespace mist {
 		EShMessages messages = EShMsgDefault;
 
 		if (!shader.parse(&resources, 100, false, messages)) {
-			MIST_ASSERT(false, std::string("Failed to parse GLSL: ") + shader.getInfoLog());
+			MIST_ERROR("Failed to parse GLSL in {}: {}", GetStringFromEshLang(shader.getStage()), shader.getInfoLog());
 			return {};
 		}
 
@@ -267,7 +289,7 @@ namespace mist {
 		program.addShader(&shader);
 
 		if (!program.link(messages)) {
-			MIST_ASSERT(false, std::string("Failed to parse GLSL: ") + shader.getInfoLog());
+			MIST_ERROR("Failed to parse GLSL in {}: {}", GetStringFromEshLang(shader.getStage()), shader.getInfoLog());
 			return {};
 		}
 
