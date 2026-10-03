@@ -7,6 +7,7 @@ namespace mist {
 		static std::string ReadFile(const std::string& path);
 		static bool Exists(const std::string& path);
 		static std::string GetAbsolutePath(const std::string& path);
+		static std::string GetParentPath(const std::string& path);
 	};
 
 	class FileDialog {

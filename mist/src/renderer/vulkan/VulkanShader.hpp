@@ -75,7 +75,7 @@ namespace mist {
 		const std::vector<VkDescriptorSetLayout>& GetDescriptorSetLayouts() const { return descriptorSetLayouts; }
 	private:
 		std::vector<uint32_t> ConvertGLSLToSPIRV(const std::string& src, EShLanguage stage);
-		PreprocessInfo PreProcess(const std::string& src);
+		PreprocessInfo PreProcess(const std::string& pathRelativeTo, const std::string& src);
 		uint32_t CalculateSize(const spirv_cross::Compiler& compiler, const spirv_cross::SPIRType& type);
 		VkFormat GetDescriptionFormat(const spirv_cross::Compiler& compiler, const spirv_cross::SPIRType type);
 		void Compile(const std::vector<uint32_t>& spirv, EShLanguage stage);

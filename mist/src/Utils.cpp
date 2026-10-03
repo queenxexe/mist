@@ -28,4 +28,9 @@ namespace mist {
 	std::string Utils::GetAbsolutePath(const std::string& path) {
 		return std::filesystem::absolute(path);
 	}
+
+	std::string Utils::GetParentPath(const std::string& path) {
+		std::filesystem::path p = path;
+		return p.parent_path();
+	}
 }

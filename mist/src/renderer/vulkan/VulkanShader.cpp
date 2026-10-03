@@ -175,10 +175,75 @@ namespace mist {
 		}
 	}
 
+	static std::string FindTokenResult(const std::string& src, const char* token) {
+		size_t len = strlen(token);
+		size_t pos = src.find(token, 0);
+		if (pos != std::string::npos) {
+			size_t eol = src.find_first_of("\r\n", pos);
+			size_t begin = pos + len + 1;
+			return src.substr(begin, eol - begin);
+		}
+		return "";
+	}
+
+	static void AddIncludes(const std::string& pathRelativeTo, std::string& src) {
+		// Make sure all includes are after any #version within a shader if there is one
+		size_t insertPos = 0;
+		size_t versionLinePos = src.find("#version", 0);
+		if (versionLinePos != std::string::npos) {
+			insertPos = src.find_first_of("\r\n", versionLinePos) + 1;
+		}
+
+		const char* typeToken = "#include";
+		size_t len = strlen(typeToken);
+		size_t pos = src.find(typeToken, 0);
+		while (pos != std::string::npos) {
+			size_t eol = src.find_first_of("\r\n", pos);
+			size_t begin = pos + len + 1;
+			std::string result = src.substr(begin, eol - begin);
+			
+			// Remove the include directive otherwise compiler will complain about it
+			// as it will think it will require extensions to handle the includes itself
+			src.erase(pos, len + result.length() + 1);
+
+			std::string includePath = Utils::GetParentPath(pathRelativeTo) + "/" + result;
+			std::string includeSrc = Utils::ReadFile(includePath);
+			AddIncludes(includePath, includeSrc);
+			src.insert(insertPos, includeSrc);
+			
+			size_t nextLinePos = src.find_first_not_of("\r\n", eol);
+			pos = src.find(typeToken, nextLinePos);
+		}
+	}
+
+	static int GetInfoLogLinePos(const std::string& infoLog) {
+		// Since TShader doesnt expose the line number I have to fetch out of log
+		// example error:
+		// ERROR: 0:214: '' :  syntax error, unexpected IDENTIFIER
+
+		size_t firstColon = infoLog.find(":");
+		size_t secondColon = infoLog.find(":", firstColon + 1);
+		size_t thirdColon = infoLog.find(":", secondColon + 1);
+
+		std::string numberString = infoLog.substr(secondColon + 1, thirdColon - secondColon - 1);
+		return std::stoi(numberString);
+	}
+
+	static std::string GetLine(const std::string& src, const int lineNumber) {
+		std::istringstream stream(src);
+		std::string line;
+		for (int i = 1; i <= lineNumber; ++i) {
+			if (!std::getline(stream, line))
+				return "";
+		}
+
+		return line;
+	}
+
 	VulkanShader::VulkanShader(const std::string& path) : Shader() {
 		shaderName = std::filesystem::path(path).stem().string();
 		std::string src = Utils::ReadFile(path);
-		PreprocessInfo preprocess = PreProcess(src);
+		PreprocessInfo preprocess = PreProcess(path, src);
 
 		cullMode = preprocess.cullMode;
 		depthTestingEnabled = preprocess.depthTestingEnabled;
@@ -215,10 +280,18 @@ namespace mist {
 		}
 	}
 
-	PreprocessInfo VulkanShader::PreProcess(const std::string& src) {
+	PreprocessInfo VulkanShader::PreProcess(const std::string& pathRelativeTo, const std::string& src) {
 		PreprocessInfo info{};
 		info.cullMode = CullMode::CULL_BACK;
 		info.depthTestingEnabled = true;
+
+		std::string cullMode = FindTokenResult(src, "#cullmode");
+		if (cullMode != "")
+			info.cullMode = CullModeFromString(cullMode);
+
+		std::string depthtest = FindTokenResult(src, "#depthtest");
+		if (depthtest != "")
+			info.depthTestingEnabled = BoolFromString(depthtest);
 
 		{
 			const char* typeToken = "#type";
@@ -237,31 +310,8 @@ namespace mist {
 			}
 		}
 
-		{
-			const char* cullToken = "#cullmode";
-			size_t tokenLength = strlen(cullToken);
-			size_t pos = src.find(cullToken, 0);
-			if (pos != std::string::npos) {
-				size_t eol = src.find_first_of("\r\n", pos);
-				size_t begin = pos + tokenLength + 1;
-				std::string result = src.substr(begin, eol - begin);
-
-				info.cullMode = CullModeFromString(result);
-			}
-		}
-
-		{
-			const char* depthToken = "#depthtest";
-			size_t tokenLength = strlen(depthToken);
-			size_t pos = src.find(depthToken, 0);
-			if (pos != std::string::npos) {
-				size_t eol = src.find_first_of("\r\n", pos);
-				size_t begin = pos + tokenLength + 1;
-				std::string result = src.substr(begin, eol - begin);
-
-				info.depthTestingEnabled = BoolFromString(result);
-			}
-		}
+		for (auto& [stage, stageSrc] : info.shaderSources)
+			AddIncludes(pathRelativeTo, stageSrc);
 
 		return info;
 	}
@@ -281,7 +331,9 @@ namespace mist {
 		EShMessages messages = EShMsgDefault;
 
 		if (!shader.parse(&resources, 100, false, messages)) {
-			MIST_ERROR("Failed to parse GLSL in {}: {}", GetStringFromEshLang(shader.getStage()), shader.getInfoLog());
+			std::string infoLog = shader.getInfoLog();
+			int linePos = GetInfoLogLinePos(infoLog);
+			MIST_ERROR("Failed to parse GLSL in {}:\n{}\n{}", GetStringFromEshLang(shader.getStage()), GetLine(src, linePos), infoLog);
 			return {};
 		}
 
@@ -289,7 +341,7 @@ namespace mist {
 		program.addShader(&shader);
 
 		if (!program.link(messages)) {
-			MIST_ERROR("Failed to parse GLSL in {}: {}", GetStringFromEshLang(shader.getStage()), shader.getInfoLog());
+			MIST_ERROR("Failed to parse GLSL in {}:\n{}", GetStringFromEshLang(shader.getStage()), shader.getInfoLog());
 			return {};
 		}
 
