@@ -18,14 +18,10 @@ void main() {
 
 #type fragment
 #version 460 core
+#include engine/cameraData.glsl
 
 layout(location = 0) in vec2 uv;
-
-layout(set = 0, binding = 0) uniform CameraData {
-	uniform mat4 u_ViewProjectionMatrix;
-} cameraData;
-
-layout(set = 1, binding = 1) uniform sampler2D skybox;
+layout(set = 1, binding = 0) uniform sampler2D skybox;
 
 layout(location = 0) out vec4 color;
 
@@ -41,7 +37,7 @@ vec2 directionToEquirectangularUV(vec3 dir) {
 }
 
 void main() {
-    mat4 inverseVP = inverse(cameraData.u_ViewProjectionMatrix);
+    mat4 inverseVP = inverse(cameraData.ViewProjectionMatrix);
     vec2 ndc = uv * 2.0 - 1.0;
 
     vec4 nearPoint = inverseVP * vec4(ndc, 0.0, 1.0);

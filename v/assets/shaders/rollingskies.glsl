@@ -18,6 +18,8 @@ void main() {
 
 #type fragment
 #version 460 core
+#include engine/cameraData.glsl
+#include engine/frameData.glsl
 #include noise.glsl
 
 #define CLOUD_HEIGHT 1000.0
@@ -27,16 +29,6 @@ void main() {
 layout(location = 0) in vec2 uv;
 
 layout(location = 0) out vec4 color;
-
-layout(set = 0, binding = 0) uniform CameraData {
-	uniform mat4 ViewProjectionMatrix;
-	uniform vec3 CameraPosition;
-} cameraData;
-
-layout(set = 1, binding = 0) uniform FrameData {
-	uniform float Time;
-	uniform float DeltaTime;
-} frameData;
 
 vec3 getWorldRay(vec2 uv) {
 	mat4 inverseVP = inverse(cameraData.ViewProjectionMatrix);

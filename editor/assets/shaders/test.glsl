@@ -1,5 +1,6 @@
 #type vertex
 #version 460 core
+#include engine/cameraData.glsl
 
 layout(location = 0) in vec3 Position;
 
@@ -9,12 +10,8 @@ layout(push_constant) uniform PushConstants {
 	mat4 ModelMatrix;
 } constants;
 
-layout(set = 0, binding = 0) uniform CameraData {
-	uniform mat4 u_ViewProjectionMatrix;
-} cameraData;
-
 void main() {
-	gl_Position = cameraData.u_ViewProjectionMatrix * constants.ModelMatrix * vec4(Position, 1);
+	gl_Position = cameraData.ViewProjectionMatrix * constants.ModelMatrix * vec4(Position, 1);
 	fragColor = Position * 0.5 + 0.5;
 }
 
