@@ -26,7 +26,7 @@ namespace V {
 		mist::Camera& gameCamera = sm->AddComponent<mist::Camera>(cameraEntity, gameCameraT);
 		gameCamera.SetPerspectiveCamera(1280, 720);
 
-		skyboxImage = rm->CreateImage("assets/testHDR.hdr", mist::TextureFormat::RGBA32F);
+		skyboxImage = rm->CreateImage("assets/HDR/testHDR.hdr", mist::TextureFormat::RGBA32F);
 		skyboxShader = rm->CreateShader("assets/shaders/skybox.glsl");
 		skyboxMat = rm->CreateMaterial(skyboxShader);
 		rm->SetTexture(renderData->GetRenderDataID(), skyboxMat, "skybox", skyboxImage);
@@ -47,13 +47,54 @@ namespace V {
 		renderAPI->BeginRenderPass(renderDataID);
 		mist::SceneManager* sm = mist::Application::Get().GetSceneManager();
 		mist::Camera& cam = dynamic_cast<mist::Camera&>(sm->GetComponent<mist::Camera>(cameraEntity));
-		sm->UpdateSceneCamera(cam, renderDataID);
+		sm->UpdateSceneData(renderDataID, cam);
 		sm->SubmitActiveSceneSkybox(renderDataID, skyboxMat);
 		sm->SubmitActiveScene(renderDataID);
 		renderAPI->EndRenderPass();
 	}
 
-	void Game::OnUpdate() {}
+	void Game::OnUpdate() {
+		mist::SceneManager* sm = mist::Application::Get().GetSceneManager();
+		float delta = mist::Application::Get().GetDeltaTime();
+
+		// SDL_GetRelativeMouseState must be called every frame otherwise it breaks camera movement
+		// when refocusing the window havent found a better solution yet
+		glm::vec2 mouse;
+		uint32_t buttons = SDL_GetRelativeMouseState(&mouse.x, &mouse.y);
+
+		mist::Transform& transform = sm->GetComponent<mist::Transform>(cameraEntity);
+		mouse *= 0.2;	// Sensitivity
+		xRotation += mouse.y;
+		xRotation = glm::clamp(xRotation, -90.0f, 90.0f);
+		yRotation += mouse.x;
+
+		glm::quat pitch = glm::angleAxis(glm::radians(xRotation), glm::vec3(1,0,0));
+		glm::quat yaw = glm::angleAxis(glm::radians(yRotation), glm::vec3(0,1,0));
+		transform.rotation = yaw * pitch;
+		
+		const bool* state = SDL_GetKeyboardState(NULL);
+		glm::vec3 move = { 0, 0, 0 };
+		if (state[SDL_SCANCODE_W])
+			move.z += 1;
+		if (state[SDL_SCANCODE_S])
+			move.z -= 1;
+		if (state[SDL_SCANCODE_D])
+			move.x += 1;
+		if (state[SDL_SCANCODE_A])
+			move.x -= 1;
+		if (state[SDL_SCANCODE_SPACE])
+			move.y += 1;
+		if (state[SDL_SCANCODE_LCTRL])
+			move.y -= 1;
+		if (state[SDL_SCANCODE_ESCAPE])
+			ImGui::SetWindowFocus(NULL);
+
+		transform.position += (
+			transform.Forward() * move.z +
+			transform.Up() * move.y +
+			transform.Left() * move.x
+		) * 15.0f * delta;
+	}
 
 	void Game::Resize(const uint32_t& x, const uint32_t& y) {
 		renderData->Resize(x, y);

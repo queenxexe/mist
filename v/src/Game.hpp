@@ -22,7 +22,11 @@ namespace V {
 		inline const std::shared_ptr<mist::RenderData>& GetRenderData() { return renderData; }
 		inline const ImTextureID GetFramebufferID() const { return framebufferID; }
 	private:
-		mist::ImguiLayer* parent;
+	mist::ImguiLayer* parent;
+	
+		float xRotation = 0;
+		float yRotation = 0;
+
 		std::shared_ptr<mist::RenderData> renderData;
 		ImTextureID framebufferID;
 		entt::entity cameraEntity;

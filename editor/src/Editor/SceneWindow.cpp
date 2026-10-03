@@ -36,8 +36,7 @@ namespace mistEditor {
 		testShader = rm->CreateShader("assets/shaders/lambert.glsl");
 		material = rm->CreateMaterial(testShader);
 
-		//testMeshes = mist::Importer::ImportMeshes("assets/brassfang.fbx");
-		testMeshes = mist::Importer::ImportMeshes("assets/LightCycle.obj", true);
+		testMeshes = mist::Importer::ImportMeshes("assets/models/LightCycle.obj", true);
 		{
 			const entt::entity triEntity = sm->CreateEntity();
 			mist::Transform& testT = sm->AddComponent<mist::Transform>(triEntity, glm::vec3(-2, 0, 0), glm::quat_identity<float, glm::defaultp>(), glm::vec3(1.0f));
@@ -75,7 +74,7 @@ namespace mistEditor {
 		mist::Transform& directionalLightT = sm->AddComponent<mist::Transform>(directionalLightEntity, glm::vec3(0, 0, -5), glm::quat(glm::radians(glm::vec3(-45, 180, 0))));
 		mist::DirectionalLight& directionalLight = sm->AddComponent<mist::DirectionalLight>(directionalLightEntity, directionalLightT, glm::vec3(1,1,1));
 	
-		skyboxImage = rm->CreateImage("assets/testHDR.hdr", mist::TextureFormat::RGBA32F);
+		skyboxImage = rm->CreateImage("assets/HDR/testHDR.hdr", mist::TextureFormat::RGBA32F);
 		skyboxShader = rm->CreateShader("assets/shaders/skybox.glsl");
 		skyboxMat = rm->CreateMaterial(skyboxShader);
 		rm->SetTexture(renderData->GetRenderDataID(), skyboxMat, "skybox", skyboxImage);

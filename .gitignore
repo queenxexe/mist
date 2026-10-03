@@ -15,3 +15,8 @@ out/*
 
 # Ignore VCPKG installed
 vcpkg_installed/*
+
+# Ignore large assets
+v/assets/HDR
+editor/assets/HDR
+editor/assets/models
