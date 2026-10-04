@@ -60,6 +60,7 @@ set_target_properties(mist PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/mist/bin"
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/mist/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/mist/lib"
+    ENGINE_ASSETS_DIR "${CMAKE_SOURCE_DIR}/mist/engine"
 ) 
 
 target_include_directories(mist
@@ -91,3 +92,15 @@ target_compile_definitions(mist
     PRIVATE $<$<CONFIG:Debug>:DEBUG>
     PRIVATE $<$<PLATFORM_ID:Windows>:MIST_DLL>
 )
+
+function(engine_copy_assets TARGET)
+    get_target_property(ENGINE_ASSETS_DIR mist ENGINE_ASSETS_DIR)
+    add_custom_target(${TARGET}_EngineAssets ALL
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${ENGINE_ASSETS_DIR}"
+                "$<TARGET_FILE_DIR:${TARGET}>/engine"
+        COMMENT "Copying engine assets to ${TARGET}"
+    )
+
+    add_dependencies(${TARGET} ${TARGET}_EngineAssets)
+endfunction()

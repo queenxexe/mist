@@ -8,6 +8,13 @@ namespace mist {
 		static bool Exists(const std::string& path);
 		static std::string GetAbsolutePath(const std::string& path);
 		static std::string GetParentPath(const std::string& path);
+		static std::string GetFileName(const std::string& filePath);
+		static std::string GetFileNameWithoutExtension(const std::string& filePath);
+		static std::string GetFileExtension(const std::string& filePath);
+
+		// Gets any default engine shader path e.g. lambert.glsl
+		// Example: std::string path = GetEngineShaderPath("lambert");
+		static std::string GetEngineShaderPath(const std::string& shaderName);
 	};
 
 	class FileDialog {

@@ -21,9 +21,9 @@ void main() {
 #include engine/cameraData.glsl
 
 layout(location = 0) in vec2 uv;
-layout(set = 1, binding = 0) uniform sampler2D skybox;
-
 layout(location = 0) out vec4 color;
+
+layout(set = 1, binding = 0) uniform sampler2D skybox;
 
 vec2 directionToEquirectangularUV(vec3 dir) {
     dir = normalize(dir);

@@ -26,10 +26,10 @@ namespace V {
 		mist::Camera& gameCamera = sm->AddComponent<mist::Camera>(cameraEntity, gameCameraT);
 		gameCamera.SetPerspectiveCamera(1280, 720);
 
-		skyboxImage = rm->CreateImage("assets/HDR/testHDR.hdr", mist::TextureFormat::RGBA32F);
-		skyboxShader = rm->CreateShader("assets/shaders/skybox.glsl");
+		//skyboxImage = rm->CreateImage("assets/HDR/testHDR.hdr", mist::TextureFormat::RGBA32F);
+		skyboxShader = rm->CreateShader("assets/shaders/rollingskies.glsl");
 		skyboxMat = rm->CreateMaterial(skyboxShader);
-		rm->SetTexture(renderData->GetRenderDataID(), skyboxMat, "skybox", skyboxImage);
+		//rm->SetTexture(renderData->GetRenderDataID(), skyboxMat, "skybox", skyboxImage);
 	}
 
 	void Game::Cleanup() {}

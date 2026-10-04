@@ -7,6 +7,7 @@
 #include <components/Rigidbody.hpp>
 #include <components/DirectionalLight.hpp>
 #include <data/Importer.hpp>
+#include <Utils.hpp>
 
 namespace mistEditor {
 	SceneWindow::SceneWindow(mist::ImguiLayer* layer) : parent(layer) {}
@@ -33,7 +34,7 @@ namespace mistEditor {
 		mist::Camera& sceneCamera = sm->AddComponent<mist::SceneCamera>(sceneCameraEntity, sceneCameraT);
 		sceneCamera.SetPerspectiveCamera(1280, 720);
 
-		testShader = rm->CreateShader("assets/shaders/lambert.glsl");
+		testShader = rm->CreateShader(mist::Utils::GetEngineShaderPath("lambert"));
 		material = rm->CreateMaterial(testShader);
 
 		testMeshes = mist::Importer::ImportMeshes("assets/models/LightCycle.obj", true);
@@ -75,7 +76,7 @@ namespace mistEditor {
 		mist::DirectionalLight& directionalLight = sm->AddComponent<mist::DirectionalLight>(directionalLightEntity, directionalLightT, glm::vec3(1,1,1));
 	
 		skyboxImage = rm->CreateImage("assets/HDR/testHDR.hdr", mist::TextureFormat::RGBA32F);
-		skyboxShader = rm->CreateShader("assets/shaders/skybox.glsl");
+		skyboxShader = rm->CreateShader(mist::Utils::GetEngineShaderPath("skybox"));
 		skyboxMat = rm->CreateMaterial(skyboxShader);
 		rm->SetTexture(renderData->GetRenderDataID(), skyboxMat, "skybox", skyboxImage);
 	}

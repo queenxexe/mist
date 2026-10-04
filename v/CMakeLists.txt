@@ -68,3 +68,4 @@ add_custom_target(CopyVAssets ALL
 )
 
 add_dependencies(v CopyVAssets)
+engine_copy_assets(v)

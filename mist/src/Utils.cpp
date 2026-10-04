@@ -33,4 +33,23 @@ namespace mist {
 		std::filesystem::path p = path;
 		return p.parent_path();
 	}
+
+	std::string Utils::GetFileName(const std::string& filePath) {
+		std::filesystem::path p = filePath;
+		return p.filename();
+	}
+
+	std::string Utils::GetFileNameWithoutExtension(const std::string& filePath) {
+		std::filesystem::path p = filePath;
+		return p.filename().stem();
+	}
+
+	std::string Utils::GetFileExtension(const std::string& filePath) {
+		std::filesystem::path p = filePath;
+		return p.extension();
+	}
+
+	std::string Utils::GetEngineShaderPath(const std::string& shaderName) {
+		return "engine/shaders/" + shaderName + ".glsl";
+	}
 }

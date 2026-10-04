@@ -206,7 +206,14 @@ namespace mist {
 			// as it will think it will require extensions to handle the includes itself
 			src.erase(pos, len + result.length() + 1);
 
-			std::string includePath = Utils::GetParentPath(pathRelativeTo) + "/" + result;
+			std::string includePath;
+			if (result.find("engine") != std::string::npos) {
+				std::string fileName = Utils::GetFileNameWithoutExtension(result);
+				includePath = Utils::GetEngineShaderPath(fileName);
+			} else {
+				includePath = Utils::GetParentPath(pathRelativeTo) + "/" + result;
+			}
+			
 			std::string includeSrc = Utils::ReadFile(includePath);
 			AddIncludes(includePath, includeSrc);
 			src.insert(insertPos, includeSrc);

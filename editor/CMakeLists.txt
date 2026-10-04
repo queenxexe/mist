@@ -68,3 +68,4 @@ add_custom_target(CopyEditorAssets ALL
 )
 
 add_dependencies(editor CopyEditorAssets)
+engine_copy_assets(editor)
