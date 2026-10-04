@@ -7,3 +7,4 @@ Documentation currently is limited and is mainly for me to list anything that is
 
 # Docs
 - [Engine Assets](engine-assets.md)
+- [Shaders](shaders.md)
